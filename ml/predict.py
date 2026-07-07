@@ -4,10 +4,8 @@ import json
 import numpy as np
 import pandas as pd
 
-import mlflow
-import mlflow.lightgbm
-import shap
-
+# mlflow / shap are imported lazily inside the functions that need them so this
+# module (and its pure KPI helpers) can be imported without the heavy ML stack.
 from features import build_user_profile, FEATURE_COLUMNS
 
 MODEL_NAMES = {
@@ -23,6 +21,9 @@ NEGATIVE_RESEARCH_TERMS = ["risk", "adverse", "danger", "toxic", "harmful", "fat
 
 
 def _load_models():
+    import mlflow
+    import mlflow.lightgbm
+
     tracking_uri = os.environ.get("MLFLOW_TRACKING_URI")
     if tracking_uri:
         mlflow.set_tracking_uri(tracking_uri)
@@ -138,6 +139,8 @@ def _risk_label(serious_pct):
 
 
 def _shap_contributions(model, X):
+    import shap
+
     explainer = shap.TreeExplainer(model)
     raw = explainer.shap_values(X)
     if isinstance(raw, list):

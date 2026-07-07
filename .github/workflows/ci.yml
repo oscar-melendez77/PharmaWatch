@@ -18,7 +18,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install tooling
-        run: pip install ruff pytest
+        run: pip install ruff pytest pandas numpy
 
       - name: Byte-compile all Python
         run: |
@@ -32,9 +32,4 @@ jobs:
         run: python -c "import json; json.load(open('docs/data/dashboard.json')); print('dashboard.json ok')"
 
       - name: Tests
-        run: |
-          set +e
-          pytest -q
-          code=$?
-          # exit 5 = no tests collected (until the Phase 7 suite lands); treat as pass
-          if [ $code -ne 0 ] && [ $code -ne 5 ]; then exit $code; fi
+        run: pytest -q
