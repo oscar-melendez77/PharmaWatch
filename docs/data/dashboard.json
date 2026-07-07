@@ -1,8 +1,9 @@
 {
   "meta": {
-    "generated_at": "2026-07-07T16:11:00.150484+00:00",
+    "generated_at": "2026-07-07T23:06:56.640237+00:00",
     "mode": "sample",
     "drug_count": 8,
+    "api_base_url": "",
     "disclaimer": "Educational demo. Risk scores are model estimates, not medical advice. Sample data is synthetic when not connected to the live API."
   },
   "profiles": [

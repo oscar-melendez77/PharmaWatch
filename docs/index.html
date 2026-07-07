@@ -79,6 +79,22 @@
   th:first-child, td:first-child { text-align: left; font-variant-numeric: normal; }
   th { color: var(--muted); font-weight: 600; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
   .table-scroll { overflow-x: auto; }
+  .api-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .api-ok { color: var(--good); font-size: 0.85rem; font-weight: 600; }
+  .api-off { color: var(--muted); font-size: 0.85rem; }
+  input[type="text"], input[type="number"] { background: var(--surface-1); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: inherit; }
+  .chat-profile { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .chat-profile label { font-size: 0.82rem; color: var(--text-secondary); display: flex; gap: 6px; align-items: center; }
+  .chat-log { height: 280px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; background: var(--surface-1); display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 0.9rem; white-space: pre-wrap; line-height: 1.45; }
+  .msg.user { align-self: flex-end; background: var(--series-1); color: #fff; }
+  .msg.bot { align-self: flex-start; border: 1px solid var(--border); color: var(--text-primary); }
+  .msg.sys { align-self: center; color: var(--muted); font-size: 0.82rem; }
+  .chat-input-row { display: flex; gap: 8px; margin-top: 10px; }
+  .chat-input-row input { flex: 1; }
+  .send-btn { background: var(--series-1); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font: inherit; cursor: pointer; }
   footer { margin-top: 40px; color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--border); padding-top: 16px; }
   a { color: var(--series-1); }
   @media (max-width: 720px) {
@@ -138,6 +154,39 @@
 
     <h2>Known interactions</h2>
     <div class="tags" id="interTags"></div>
+  </div>
+
+  <h2>Ask the agent</h2>
+  <div class="card">
+    <div class="api-row">
+      <span id="apiStatus" class="api-off">● backend not connected</span>
+      <input type="text" id="apiInput" placeholder="https://your-api.onrender.com" style="flex:1;min-width:220px" />
+      <button class="toggle" id="apiSave">Save API URL</button>
+    </div>
+    <div class="chat-profile">
+      <label>Age <input type="number" id="chatAge" value="30" style="width:64px" /></label>
+      <label>Sex
+        <select id="chatSex">
+          <option value=""></option><option value="female">female</option>
+          <option value="male">male</option><option value="other">other</option>
+        </select>
+      </label>
+      <label>Alcohol
+        <select id="chatAlcohol">
+          <option value="none">none</option><option value="moderate">moderate</option><option value="heavy">heavy</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="chatSmoker" /> smoker</label>
+    </div>
+    <div class="chat-log" id="chatLog"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="e.g. Is this safe for me given my profile?" />
+      <button class="send-btn" id="chatSend">Send</button>
+    </div>
+    <p style="color:var(--muted);font-size:0.8rem;margin-top:8px">
+      Answers about the selected drug (<b id="chatDrug">—</b>) using FAERS risk scores, PubMed,
+      Reddit, and FDA labels. Requires the live API — paste its URL above or deploy it.
+    </p>
   </div>
 
   <h2>All drugs</h2>
@@ -219,6 +268,7 @@ function select(name) {
   current = d;
   document.getElementById("drugSelect").value = name;
   document.getElementById("detailName").textContent = d.drug_name;
+  document.getElementById("chatDrug").textContent = d.drug_name;
 
   const pill = document.getElementById("riskPill");
   pill.innerHTML = '<span class="dot" style="background:' + V(STATUS[d.risk_label] || "--muted") + '"></span>' + d.risk_label + " RISK";
@@ -279,6 +329,79 @@ document.getElementById("themeBtn").addEventListener("click", () => {
 });
 document.getElementById("drugSelect").addEventListener("change", (e) => select(e.target.value));
 
+// --- chat agent (talks to the live /ask API) ---
+function getApiBase() {
+  try { const s = localStorage.getItem("pw-api"); if (s) return s; } catch (e) {}
+  const q = new URLSearchParams(location.search).get("api");
+  if (q) return q;
+  return (DATA && DATA.meta && DATA.meta.api_base_url) || "";
+}
+function trimSlash(u) { return (u || "").replace(/\/+$/, ""); }
+function setApiStatus() {
+  const base = getApiBase();
+  const el = document.getElementById("apiStatus");
+  if (base) {
+    el.textContent = "● connected: " + base;
+    el.className = "api-ok";
+    document.getElementById("apiInput").value = base;
+  } else {
+    el.textContent = "● backend not connected";
+    el.className = "api-off";
+  }
+}
+function addMsg(text, cls) {
+  const log = document.getElementById("chatLog");
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.textContent = text;
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+  return d;
+}
+document.getElementById("apiSave").addEventListener("click", () => {
+  const v = trimSlash(document.getElementById("apiInput").value.trim());
+  try { if (v) localStorage.setItem("pw-api", v); else localStorage.removeItem("pw-api"); } catch (e) {}
+  setApiStatus();
+  addMsg(v ? "API connected — ask away." : "API cleared.", "sys");
+});
+async function sendChat() {
+  const input = document.getElementById("chatInput");
+  const q = input.value.trim();
+  if (!q) return;
+  const base = getApiBase();
+  if (!base) { addMsg("Connect your live API first — paste its URL above.", "sys"); return; }
+  if (!current) { addMsg("Select a drug first.", "sys"); return; }
+  addMsg(q, "user");
+  input.value = "";
+  const thinking = addMsg("…thinking", "bot");
+  try {
+    const resp = await fetch(trimSlash(base) + "/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        drug_name: current.drug_name,
+        age: parseInt(document.getElementById("chatAge").value, 10) || 30,
+        weight: 70,
+        question: q,
+        sex: document.getElementById("chatSex").value || null,
+        smoker: document.getElementById("chatSmoker").checked,
+        alcohol: document.getElementById("chatAlcohol").value || "none",
+        concurrent_meds: 0,
+        pregnant: false,
+      }),
+    });
+    thinking.remove();
+    if (!resp.ok) { addMsg("API returned " + resp.status + ".", "sys"); return; }
+    const data = await resp.json();
+    addMsg(data.answer || "(no answer)", "bot");
+  } catch (err) {
+    thinking.remove();
+    addMsg("Couldn't reach the API. Is it deployed and the URL correct? (" + err + ")", "sys");
+  }
+}
+document.getElementById("chatSend").addEventListener("click", sendChat);
+document.getElementById("chatInput").addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat(); });
+
 fetch("data/dashboard.json")
   .then(r => r.json())
   .then(d => {
@@ -298,6 +421,13 @@ fetch("data/dashboard.json")
       if (saved) document.documentElement.setAttribute("data-theme", saved);
     } catch (e) {}
     renderAll();
+    setApiStatus();
+    addMsg(
+      getApiBase()
+        ? "Hi — ask me anything about " + current.drug_name + ". I use FAERS, PubMed, Reddit, and FDA labels."
+        : "Paste your live API URL above to start chatting about " + current.drug_name + ".",
+      "sys"
+    );
   })
   .catch(err => {
     document.getElementById("modeBadge").textContent = "data unavailable";

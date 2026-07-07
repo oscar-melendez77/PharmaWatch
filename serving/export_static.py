@@ -150,6 +150,9 @@ def main():
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "mode": mode,
             "drug_count": len(profiles),
+            # when the pipeline runs with a live API configured, surface it so the
+            # dashboard chat panel can reach /ask without manual setup
+            "api_base_url": os.environ.get("API_BASE_URL", ""),
             "disclaimer": (
                 "Educational demo. Risk scores are model estimates, not medical "
                 "advice. Sample data is synthetic when not connected to the live API."
