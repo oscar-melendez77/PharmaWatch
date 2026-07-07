@@ -19,6 +19,12 @@ QUERY = "drug adverse effects OR drug toxicity OR pharmacovigilance"
 S3_BUCKET = "pharmawatch-data-lake"
 SOURCE = "pubmed"
 
+ICEBERG_PACKAGES = (
+    "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.5.2,"
+    "software.amazon.awssdk:bundle:2.24.8,"
+    "software.amazon.awssdk:url-connection-client:2.24.8"
+)
+
 DRUG_KEYWORDS = [
     "Adderall", "Oxycodone", "Xanax", "Metformin", "Lisinopril",
     "Atorvastatin", "Ibuprofen", "Amoxicillin", "Methadone", "Fentanyl",
@@ -202,6 +208,27 @@ def validate_pubmed(**context):
                 logger.warning("Failed to remove temp file %s: %s", tmp_path, exc)
 
 
+def ingest_to_iceberg(**context):
+    ds = context["ds"]
+    script = os.path.join(
+        os.environ["PHARMAWATCH_ROOT"], "iceberg", "ingest_raw.py"
+    )
+    result = subprocess.run(
+        ["spark-submit", "--packages", ICEBERG_PACKAGES, script, SOURCE, ds],
+        capture_output=True,
+        text=True,
+    )
+    if result.stdout:
+        logger.info(result.stdout)
+    if result.stderr:
+        logger.info(result.stderr)
+
+    if result.returncode != 0:
+        raise AirflowException("iceberg ingest failed: {} ({})".format(SOURCE, ds))
+
+    logger.info("iceberg ingest done: %s (%s)", SOURCE, ds)
+
+
 with DAG(
     dag_id="pubmed_daily",
     default_args=default_args,
@@ -229,4 +256,9 @@ with DAG(
         python_callable=validate_pubmed,
     )
 
-    fetch_task >> filter_task >> load_task >> validate_task
+    ingest_task = PythonOperator(
+        task_id="ingest_to_iceberg",
+        python_callable=ingest_to_iceberg,
+    )
+
+    fetch_task >> filter_task >> load_task >> validate_task >> ingest_task
