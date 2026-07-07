@@ -28,6 +28,10 @@ def load_dataframe(df, table_name, schema_dict):
         cursor = conn.cursor()
         try:
             ensure_table(cursor, table_name, schema_dict)
+            # idempotent full refresh: clear the table before reloading so
+            # re-running the pipeline for a day does not duplicate rows
+            # (BigQuery loader uses WRITE_TRUNCATE for the same reason).
+            cursor.execute("TRUNCATE TABLE IF EXISTS {}".format(table_name))
 
             columns = list(schema_dict.keys())
             placeholders = ", ".join(["%s"] * len(columns))

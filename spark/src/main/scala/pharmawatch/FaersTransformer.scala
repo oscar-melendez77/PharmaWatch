@@ -2,7 +2,7 @@ package pharmawatch
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{DoubleType, IntegerType}
+import org.apache.spark.sql.types.{DateType, DoubleType, IntegerType}
 
 object FaersTransformer {
 
@@ -15,7 +15,7 @@ object FaersTransformer {
     val cast = raw
       .withColumn("age", col("age").cast(IntegerType))
       .withColumn("weight", col("weight").cast(DoubleType))
-      .withColumn("report_date", to_date(col("report_date"), "yyyyMMdd"))
+      .withColumn("report_date", col("report_date").cast(DateType))
 
     val filtered = cast
       .filter(col("drug_name").isNotNull && length(trim(col("drug_name"))) > 0)

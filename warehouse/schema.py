@@ -8,6 +8,9 @@ FAERS_SCHEMA = {
     "report_date": "DATE",
     "age_group": "VARCHAR",
     "is_serious": "BOOLEAN",
+    "hospitalization": "INTEGER",
+    "death": "INTEGER",
+    "disability": "INTEGER",
     "ingestion_ts": "TIMESTAMP",
 }
 
