@@ -10,6 +10,34 @@ path. Budget ~2–3 hours the first time.
 > and a hosted MLflow (or self-host). The `WAREHOUSE=auto` switch falls back from
 > Snowflake to BigQuery when the trial expires.
 
+## Zero-to-chat (the 10-minute demo path)
+
+Want the dashboard chat working without provisioning any infra? Deploy the demo
+API — it serves from the sample data in `docs/data/` and only needs a **free Groq
+key**. This does NOT need AWS/Snowflake/Databricks/MLflow.
+
+1. Get a free key at **console.groq.com/keys**.
+2. **Try it locally first (optional):**
+   ```bash
+   pip install -r api/requirements-demo.txt
+   GROQ_API_KEY=gsk_your_key uvicorn api.demo_app:app --host 0.0.0.0 --port 8000
+   ```
+   Open the live dashboard, paste `http://localhost:8000` into the "Ask the agent"
+   box, click **Save API URL**, and chat. (Chrome allows http://localhost from an
+   https page.)
+3. **Deploy it for a permanent URL (Render, free):**
+   - render.com → **New → Web Service** → connect this repo.
+   - **Build command:** `pip install -r api/requirements-demo.txt`
+   - **Start command:** `uvicorn api.demo_app:app --host 0.0.0.0 --port 10000`
+   - **Environment:** add `GROQ_API_KEY = gsk_your_key`.
+   - Create. When it's live, `curl https://<name>.onrender.com/health` returns
+     `{"status":"ok","mode":"demo",...}`.
+4. Paste that Render URL into the dashboard's "Ask the agent" box → **Save**. Done —
+   the chat answers about the eight demo drugs (Adderall, Xanax, Fentanyl, …).
+
+For the *real* pipeline (live FAERS/PubMed data, trained models, the full agent with
+PubMed/Reddit/label tools), continue with the full deployment below.
+
 ## Prerequisites
 
 | Tool | Used for |
