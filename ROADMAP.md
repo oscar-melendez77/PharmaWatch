@@ -5,6 +5,24 @@ project is **not yet wired end-to-end**. Several stages read from inputs that no
 upstream produces. This roadmap closes those gaps in dependency order so the pipeline
 can run raw → clean → warehouse → mart → model → index → serve.
 
+## Build progress
+
+| Phase | Work | Status |
+|-------|------|--------|
+| 1 | S3 raw JSON → raw Iceberg loader + DAG wiring | ✅ done |
+| 2 | Clean Iceberg → warehouse runner + idempotent loaders + schema fix | ✅ done |
+| 3 | MLflow AUC-gated model promotion | ✅ done |
+| 4 | Single orchestration entrypoint + master DAG | ✅ done |
+| 5 | Static export + live GitHub Pages dashboard | ✅ done (live) |
+| 6 | GitHub Actions daily refresh + CI | ✅ done (running) |
+| 7 | pytest suite, gating CI | ✅ done (green) |
+| 8 | Deployment configs + README refresh | ✅ done |
+| 9 | Personalized risk profile (gender/habits) | planned |
+
+The four blocking seams below (Stages 1–2 of the original plan) are closed. What
+remains needs live cloud credentials (deploy the API/UI, provision infra) or is the
+Phase 9 personalization enhancement.
+
 ## Current state
 
 | Layer | Built | Runnable in isolation | Wired to neighbors |

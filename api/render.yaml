@@ -2,8 +2,10 @@ services:
   - type: web
     name: pharmawatch-api
     runtime: python
+    plan: free
     buildCommand: pip install -r api/requirements.txt
     startCommand: uvicorn api.main:app --host 0.0.0.0 --port 10000
+    healthCheckPath: /health
     envVars:
       - key: WAREHOUSE
         value: set_in_dashboard
