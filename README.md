@@ -115,7 +115,8 @@ tests/           pytest suite
 - **API:** deploy to Render with [`api/render.yaml`](api/render.yaml) (set the secrets in the dashboard); docs at `/docs`.
 - **UI:** deploy `ui/` to HuggingFace Spaces (config in [`ui/README.md`](ui/README.md)); set `API_BASE_URL` to the Render URL.
 
-See [ROADMAP.md](ROADMAP.md) for build status and remaining work.
+Full step-by-step deploy instructions are in [DEPLOY.md](DEPLOY.md). See
+[ROADMAP.md](ROADMAP.md) for build status and remaining work.
 
 ## Author
 
