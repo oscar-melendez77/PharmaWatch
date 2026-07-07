@@ -17,11 +17,13 @@ can run raw → clean → warehouse → mart → model → index → serve.
 | 6 | GitHub Actions daily refresh + CI | ✅ done (running) |
 | 7 | pytest suite, gating CI | ✅ done (green) |
 | 8 | Deployment configs + README refresh | ✅ done |
-| 9 | Personalized risk profile (gender/habits) | planned |
+| 9 | Personalized risk profile (age/sex/habits) | ✅ done (rule-based layer) |
 
-The four blocking seams below (Stages 1–2 of the original plan) are closed. What
-remains needs live cloud credentials (deploy the API/UI, provision infra) or is the
-Phase 9 personalization enhancement.
+The four blocking seams below (Stages 1–2 of the original plan) are closed. Phase 9
+adds a transparent rule-based personalization layer (`ml/personalize.py`); making it
+*learned* (retrain on individual FAERS reports with patient sex/age) is a future
+enhancement. What remains needs live cloud credentials — deploy the API/UI and
+provision infra.
 
 ## Current state
 

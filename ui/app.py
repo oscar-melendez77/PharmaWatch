@@ -6,7 +6,8 @@ import gradio as gr
 API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:10000")
 
 
-def call_predict(drug_name, age, weight):
+def call_predict(drug_name, age, weight, sex="", smoker=False, alcohol="none",
+                 concurrent_meds=0, pregnant=False):
     try:
         response = requests.post(
             "{}/predict".format(API_BASE_URL),
@@ -14,6 +15,11 @@ def call_predict(drug_name, age, weight):
                 "drug_name": drug_name,
                 "age": int(age),
                 "weight": float(weight),
+                "sex": sex or None,
+                "smoker": bool(smoker),
+                "alcohol": alcohol or "none",
+                "concurrent_meds": int(concurrent_meds or 0),
+                "pregnant": bool(pregnant),
             },
             timeout=120,
         )
@@ -75,12 +81,14 @@ def derive_age_group(age):
     return "65+"
 
 
-def run_analysis(drug_name, age, weight):
-    result = call_predict(drug_name, age, weight)
+def run_analysis(drug_name, age, weight, sex="", smoker=False, alcohol="none",
+                 concurrent_meds=0, pregnant=False):
+    result = call_predict(drug_name, age, weight, sex, smoker, alcohol, concurrent_meds, pregnant)
 
     if result is None:
         empty_reactions = [["N/A", 0.0]]
         empty_shap = [["N/A", 0.0]]
+        empty_adj = [["—", "", 1.0]]
         return (
             "N/A",
             "N/A",
@@ -102,6 +110,12 @@ def run_analysis(drug_name, age, weight):
             weight,
             derive_age_group(age),
             "UNKNOWN",
+            "UNKNOWN",
+            "N/A",
+            "N/A",
+            "N/A",
+            "N/A",
+            empty_adj,
         )
 
     serious = "{:.1f}%".format(float(result.get("serious_reaction_pct", 0.0)))
@@ -138,6 +152,20 @@ def run_analysis(drug_name, age, weight):
 
     age_group = derive_age_group(age)
 
+    p_serious = "{:.1f}%".format(float(result.get("personal_serious_pct", 0.0)))
+    p_hosp = "{:.1f}%".format(float(result.get("personal_hospitalization_pct", 0.0)))
+    p_death = "{:.1f}%".format(float(result.get("personal_death_pct", 0.0)))
+    p_disab = "{:.1f}%".format(float(result.get("personal_disability_pct", 0.0)))
+    p_risk = result.get("personal_risk_label", "UNKNOWN")
+
+    adjustments = result.get("personal_adjustments") or []
+    adj_data = [
+        [a.get("factor", ""), a.get("detail", ""), a.get("serious_multiplier", 1.0)]
+        for a in adjustments
+    ]
+    if not adj_data:
+        adj_data = [["No personal factors changed the score", "", 1.0]]
+
     return (
         serious,
         hosp,
@@ -159,6 +187,12 @@ def run_analysis(drug_name, age, weight):
         weight,
         age_group,
         risk_label,
+        p_risk,
+        p_serious,
+        p_hosp,
+        p_death,
+        p_disab,
+        adj_data,
     )
 
 
@@ -195,6 +229,19 @@ with gr.Blocks(title="PharmaWatch") as demo:
                 drug_name_in = gr.Textbox(label="Drug Name", placeholder="e.g. Adderall")
                 age_in = gr.Number(label="Age", value=30)
                 weight_in = gr.Number(label="Weight (kg)", value=70)
+
+            with gr.Row():
+                sex_in = gr.Dropdown(
+                    label="Sex", choices=["", "female", "male", "other"], value=""
+                )
+                alcohol_in = gr.Dropdown(
+                    label="Alcohol use", choices=["none", "moderate", "heavy"], value="none"
+                )
+                meds_in = gr.Number(label="Other meds taken", value=0, precision=0)
+                smoker_in = gr.Checkbox(label="Smoker", value=False)
+                pregnant_in = gr.Checkbox(label="Pregnant", value=False)
+
+            with gr.Row():
                 analyze_btn = gr.Button("Analyze", variant="primary")
 
             with gr.Row():
@@ -206,6 +253,24 @@ with gr.Blocks(title="PharmaWatch") as demo:
             with gr.Row():
                 risk_level_out = gr.Textbox(label="Overall Risk Level")
                 warning_sev_out = gr.Textbox(label="Label Warning Severity")
+
+            gr.Markdown(
+                "## Personalized for your profile\n"
+                "_Rule-based, educational adjustments layered on the model's drug-level "
+                "score based on the factors you entered — not medical advice._"
+            )
+            with gr.Row():
+                p_risk_out = gr.Textbox(label="Personalized Risk Level")
+            with gr.Row():
+                p_serious_out = gr.Label(label="Serious (for you)")
+                p_hosp_out = gr.Label(label="Hospitalization (for you)")
+                p_death_out = gr.Label(label="Death (for you)")
+                p_disab_out = gr.Label(label="Disability (for you)")
+            with gr.Row():
+                adjustments_out = gr.Dataframe(
+                    label="Applied personal adjustments",
+                    headers=["Factor", "Why", "×Serious"],
+                )
 
             with gr.Row():
                 with gr.Column():
@@ -242,7 +307,7 @@ with gr.Blocks(title="PharmaWatch") as demo:
 
             analyze_btn.click(
                 fn=run_analysis,
-                inputs=[drug_name_in, age_in, weight_in],
+                inputs=[drug_name_in, age_in, weight_in, sex_in, smoker_in, alcohol_in, meds_in, pregnant_in],
                 outputs=[
                     serious_out,
                     hosp_out,
@@ -264,6 +329,12 @@ with gr.Blocks(title="PharmaWatch") as demo:
                     st_weight,
                     st_age_group,
                     st_risk_label,
+                    p_risk_out,
+                    p_serious_out,
+                    p_hosp_out,
+                    p_death_out,
+                    p_disab_out,
+                    adjustments_out,
                 ],
             )
 

@@ -56,6 +56,7 @@ def health():
 @app.post("/predict", response_model=PredictResponse)
 def predict(req: PredictRequest, state: AppState = Depends(get_app_state)):
     from predict import predict_risk
+    from personalize import build_factors, personalize
 
     result = predict_risk(
         req.drug_name,
@@ -68,6 +69,25 @@ def predict(req: PredictRequest, state: AppState = Depends(get_app_state)):
     )
     if result is None:
         raise HTTPException(status_code=404, detail="Drug not found: {}".format(req.drug_name))
+
+    factors = build_factors(
+        age=req.age,
+        sex=req.sex,
+        weight=req.weight,
+        smoker=req.smoker,
+        alcohol=req.alcohol,
+        concurrent_meds=req.concurrent_meds,
+        pregnant=req.pregnant,
+    )
+    personal = personalize(
+        {
+            "serious": result.get("serious_reaction_pct", 0.0),
+            "hospitalization": result.get("hospitalization_pct", 0.0),
+            "death": result.get("death_pct", 0.0),
+            "disability": result.get("disability_pct", 0.0),
+        },
+        factors,
+    )
 
     return PredictResponse(
         drug_name=req.drug_name,
@@ -86,6 +106,13 @@ def predict(req: PredictRequest, state: AppState = Depends(get_app_state)):
         known_interactions=result.get("known_interactions", []),
         shap_values=result.get("shap_values", []),
         top_risk_factor=str(result.get("top_risk_factor") or ""),
+        personalized=personal["applied"],
+        personal_serious_pct=personal["serious_reaction_pct"],
+        personal_hospitalization_pct=personal["hospitalization_pct"],
+        personal_death_pct=personal["death_pct"],
+        personal_disability_pct=personal["disability_pct"],
+        personal_risk_label=personal["risk_label"],
+        personal_adjustments=personal["adjustments"],
     )
 
 
