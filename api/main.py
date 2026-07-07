@@ -133,8 +133,25 @@ def ask_endpoint(req: AskRequest, state: AppState = Depends(get_app_state)):
     if risk_result is None:
         raise HTTPException(status_code=404, detail="Drug not found: {}".format(req.drug_name))
 
-    user_profile = {"age": req.age, "weight": req.weight}
-    answer = ask(req.question, req.drug_name, user_profile, risk_result)
+    user_profile = {
+        "age": req.age,
+        "weight": req.weight,
+        "sex": req.sex,
+        "smoker": req.smoker,
+        "alcohol": req.alcohol,
+        "concurrent_meds": req.concurrent_meds,
+        "pregnant": req.pregnant,
+    }
+    answer = ask(
+        req.question,
+        req.drug_name,
+        user_profile,
+        risk_result,
+        state.master_df,
+        state.reddit_df,
+        state.pubmed_df,
+        state.labels_df,
+    )
     return AskResponse(answer=answer)
 
 

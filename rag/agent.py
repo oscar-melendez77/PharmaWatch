@@ -3,9 +3,11 @@ import sys
 import json
 from pathlib import Path
 
+_RAG_DIR = str(Path(__file__).resolve().parent)
 _ML_DIR = str(Path(__file__).resolve().parent.parent / "ml")
-if _ML_DIR not in sys.path:
-    sys.path.insert(0, _ML_DIR)
+for _p in (_RAG_DIR, _ML_DIR):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 from langchain_groq import ChatGroq
 from langchain.agents import AgentExecutor, create_tool_calling_agent
@@ -13,39 +15,29 @@ from langchain_core.tools import Tool
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 import retriever
+from tools import (
+    format_risk_summary,
+    risk_scores_text,
+    community_sentiment_text,
+    label_info_text,
+)
 
 GROQ_MODEL = "llama3-8b-8192"
 
 SYSTEM_PROMPT = (
-    "You are PharmaWatch, a drug safety intelligence assistant. "
-    "You have access to FDA adverse event data, PubMed research, and Reddit patient sentiment. "
-    "Always ground your answers in retrieved evidence. Never fabricate medical information. "
-    "Always recommend consulting a healthcare provider."
+    "You are PharmaWatch, a drug safety intelligence assistant. You can pull from "
+    "four collected data sources with your tools: model risk scores personalized to "
+    "the user (get_risk_scores), PubMed research (search_research), Reddit patient "
+    "sentiment (get_community_sentiment), and FDA drug labels (get_label_info). "
+    "Use the tools to ground every answer in retrieved evidence — call more than one "
+    "when the question spans sources. Tailor your answer to the user's profile when "
+    "given. Never fabricate medical information, and always recommend consulting a "
+    "healthcare provider. This is educational, not medical advice."
 )
 
 
 def _llm():
     return ChatGroq(api_key=os.environ["GROQ_API_KEY"], model=GROQ_MODEL)
-
-
-def _format_risk_summary(result):
-    if result is None:
-        return "No risk data available."
-    lines = [
-        "Serious reaction: {:.1f}%".format(float(result.get("serious_reaction_pct", 0.0))),
-        "Hospitalization: {:.1f}%".format(float(result.get("hospitalization_pct", 0.0))),
-        "Death: {:.1f}%".format(float(result.get("death_pct", 0.0))),
-        "Disability: {:.1f}%".format(float(result.get("disability_pct", 0.0))),
-        "Risk label: {}".format(result.get("risk_label", "UNKNOWN")),
-        "Top risk factor: {}".format(result.get("top_risk_factor", "n/a")),
-        "Dependency mention rate: {:.1f}%".format(float(result.get("dependency_mention_rate", 0.0))),
-        "Withdrawal mention rate: {:.1f}%".format(float(result.get("withdrawal_mention_rate", 0.0))),
-        "Community concern score: {:.1f}".format(float(result.get("community_concern_score", 0.0))),
-        "Research risk consensus: {:.1f}%".format(float(result.get("research_risk_consensus", 0.0))),
-        "Total research papers: {}".format(int(result.get("total_research_papers", 0))),
-        "Label warning severity: {}".format(result.get("label_warning_severity", "UNKNOWN")),
-    ]
-    return "\n".join(lines)
 
 
 def _format_research_results(results, drug_name):
@@ -65,7 +57,7 @@ def _format_research_results(results, drug_name):
     return "\n".join(lines)
 
 
-def build_agent(master_df=None, reddit_df=None, pubmed_df=None, labels_df=None):
+def build_agent(master_df=None, reddit_df=None, pubmed_df=None, labels_df=None, user_profile=None):
     llm = _llm()
 
     def search_research(input_str):
@@ -78,14 +70,26 @@ def build_agent(master_df=None, reddit_df=None, pubmed_df=None, labels_df=None):
         results = retriever.retrieve(query, drug_name)
         return _format_research_results(results, drug_name)
 
-    def get_risk_summary(drug_name):
-        if master_df is None:
-            return "Risk data unavailable: master profile not loaded into agent."
-        from predict import predict_risk
-        result = predict_risk(drug_name, 30, 70, master_df, reddit_df, pubmed_df, labels_df)
-        return _format_risk_summary(result)
+    def get_risk_scores(drug_name):
+        return risk_scores_text(
+            (drug_name or "").strip(), master_df, reddit_df, pubmed_df, labels_df, user_profile
+        )
+
+    def get_community_sentiment(drug_name):
+        return community_sentiment_text((drug_name or "").strip(), reddit_df)
+
+    def get_label_info(drug_name):
+        return label_info_text((drug_name or "").strip(), labels_df)
 
     tools = [
+        Tool(
+            name="get_risk_scores",
+            func=get_risk_scores,
+            description=(
+                "Model-predicted risk scores (serious/hospitalization/death/disability) "
+                "and KPIs for a drug, personalized to the user's profile. Input: drug name."
+            ),
+        ),
         Tool(
             name="search_research",
             func=search_research,
@@ -95,9 +99,20 @@ def build_agent(master_df=None, reddit_df=None, pubmed_df=None, labels_df=None):
             ),
         ),
         Tool(
-            name="get_risk_summary",
-            func=get_risk_summary,
-            description="Get risk scores and KPIs for a drug based on adverse event data",
+            name="get_community_sentiment",
+            func=get_community_sentiment,
+            description=(
+                "Reddit patient sentiment for a drug: dependency, withdrawal, and "
+                "community concern signals. Input: drug name."
+            ),
+        ),
+        Tool(
+            name="get_label_info",
+            func=get_label_info,
+            description=(
+                "FDA drug label warnings, warning severity, and known interactions. "
+                "Input: drug name."
+            ),
         ),
     ]
 
@@ -111,10 +126,11 @@ def build_agent(master_df=None, reddit_df=None, pubmed_df=None, labels_df=None):
     return AgentExecutor(agent=agent, tools=tools, verbose=False)
 
 
-def ask(question, drug_name, user_profile, predict_risk_result):
-    executor = build_agent()
+def ask(question, drug_name, user_profile, predict_risk_result,
+        master_df=None, reddit_df=None, pubmed_df=None, labels_df=None):
+    executor = build_agent(master_df, reddit_df, pubmed_df, labels_df, user_profile)
 
-    risk_context = _format_risk_summary(predict_risk_result)
+    risk_context = format_risk_summary(predict_risk_result)
     human_input = (
         "Drug: {drug}\n"
         "User profile: {profile}\n\n"

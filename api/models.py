@@ -20,6 +20,11 @@ class AskRequest(BaseModel):
     age: int
     weight: float
     question: str
+    sex: Optional[str] = None
+    smoker: bool = False
+    alcohol: str = "none"
+    concurrent_meds: int = Field(default=0, ge=0, le=50)
+    pregnant: bool = False
 
 
 class DigestRequest(BaseModel):

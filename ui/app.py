@@ -30,7 +30,8 @@ def call_predict(drug_name, age, weight, sex="", smoker=False, alcohol="none",
         return None
 
 
-def call_ask(drug_name, age, weight, question):
+def call_ask(drug_name, age, weight, question, sex="", smoker=False,
+             alcohol="none", concurrent_meds=0, pregnant=False):
     try:
         response = requests.post(
             "{}/ask".format(API_BASE_URL),
@@ -39,6 +40,11 @@ def call_ask(drug_name, age, weight, question):
                 "age": int(age),
                 "weight": float(weight),
                 "question": question,
+                "sex": sex or None,
+                "smoker": bool(smoker),
+                "alcohol": alcohol or "none",
+                "concurrent_meds": int(concurrent_meds or 0),
+                "pregnant": bool(pregnant),
             },
             timeout=180,
         )
@@ -202,14 +208,15 @@ def load_digest(drug_name, age_group, risk_label):
     return call_digest(drug_name, age_group, risk_label)
 
 
-def chat(question, history, drug_name, age, weight):
+def chat(question, history, drug_name, age, weight, sex="", smoker=False,
+         alcohol="none", concurrent_meds=0, pregnant=False):
     history = history or []
     if not question or not question.strip():
         return history, ""
     if not drug_name:
         history = history + [(question, "Please run Risk Analysis first to set the drug context.")]
         return history, ""
-    answer = call_ask(drug_name, age, weight, question)
+    answer = call_ask(drug_name, age, weight, question, sex, smoker, alcohol, concurrent_meds, pregnant)
     history = history + [(question, answer)]
     return history, ""
 
@@ -359,7 +366,8 @@ with gr.Blocks(title="PharmaWatch") as demo:
 
             send_btn.click(
                 fn=chat,
-                inputs=[question_in, chatbot, st_drug_name, st_age, st_weight],
+                inputs=[question_in, chatbot, st_drug_name, st_age, st_weight,
+                        sex_in, smoker_in, alcohol_in, meds_in, pregnant_in],
                 outputs=[chatbot, question_in],
             )
 

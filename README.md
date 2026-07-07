@@ -9,7 +9,7 @@ Drug risk intelligence platform. Give it a drug name + your age/weight and it sp
 
 ## How it works
 
-You enter a drug and a basic profile. The system pulls adverse event data from FDA FAERS, papers from PubMed, drug labels from OpenFDA, and patient discussion from Reddit. Four LightGBM models score risk across serious reactions, hospitalization, death, and disability. SHAP explains what's driving the serious reaction score. A transparent, rule-based personalization layer then adjusts those drug-level scores for your age, sex, body weight, and habits (smoking, alcohol, polypharmacy, pregnancy) and shows exactly which factors moved the risk. A RAG agent (Groq + Llama 3) handles follow-up questions grounded in the research.
+You enter a drug and a basic profile. The system pulls adverse event data from FDA FAERS, papers from PubMed, drug labels from OpenFDA, and patient discussion from Reddit. Four LightGBM models score risk across serious reactions, hospitalization, death, and disability. SHAP explains what's driving the serious reaction score. A transparent, rule-based personalization layer then adjusts those drug-level scores for your age, sex, body weight, and habits (smoking, alcohol, polypharmacy, pregnancy) and shows exactly which factors moved the risk. A RAG agent (Groq + Llama 3) answers follow-up questions with tools over all four sources — personalized risk scores, PubMed research, Reddit sentiment, and FDA labels — so it can reason across everything collected.
 
 ## Architecture
 
