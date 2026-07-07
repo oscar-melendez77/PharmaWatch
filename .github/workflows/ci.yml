@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tooling
+        run: pip install ruff pytest
+
+      - name: Byte-compile all Python
+        run: |
+          python -m compileall -q \
+            airflow iceberg warehouse ml rag api ui serving orchestration kafka quality
+
+      - name: Lint (non-blocking)
+        run: ruff check . || true
+
+      - name: Validate dashboard JSON
+        run: python -c "import json; json.load(open('docs/data/dashboard.json')); print('dashboard.json ok')"
+
+      - name: Tests
+        run: |
+          set +e
+          pytest -q
+          code=$?
+          # exit 5 = no tests collected (until the Phase 7 suite lands); treat as pass
+          if [ $code -ne 0 ] && [ $code -ne 5 ]; then exit $code; fi

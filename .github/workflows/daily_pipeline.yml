@@ -1,0 +1,51 @@
+name: PharmaWatch Daily Refresh
+
+# Refreshes the dashboard data and commits it back so GitHub Pages rebuilds —
+# the same "commit refreshed data -> Pages auto-updates" pattern that keeps the
+# demo alive without always-on infra. If API_BASE_URL is configured as a repo
+# secret, export_static.py pulls live /predict results; otherwise it regenerates
+# the sample fixtures (with a fresh timestamp).
+#
+# The full data pipeline (Spark/Databricks/warehouse/dbt/ML) runs via the
+# master_pipeline Airflow DAG, not here — a stock GitHub runner can't host Spark.
+
+on:
+  schedule:
+    - cron: "0 9 * * *"   # 09:00 UTC daily
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pharmawatch-daily
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Refresh dashboard data
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+        run: python serving/export_static.py
+
+      - name: Commit refreshed data
+        run: |
+          git config user.name "pharmawatch-bot"
+          git config user.email "bot@pharmawatch"
+          git add docs/data/
+          if git diff --staged --quiet; then
+            echo "no data changes"
+          else
+            git commit -m "chore: daily dashboard refresh [skip ci]"
+            git push
+          fi
