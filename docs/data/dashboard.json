@@ -1,10 +1,19 @@
 {
   "meta": {
-    "generated_at": "2026-07-07T23:06:56.640237+00:00",
+    "generated_at": "2026-07-08T00:17:52.974249+00:00",
     "mode": "sample",
     "drug_count": 8,
     "api_base_url": "",
     "disclaimer": "Educational demo. Risk scores are model estimates, not medical advice. Sample data is synthetic when not connected to the live API."
+  },
+  "stats": {
+    "drugs": 8,
+    "adverse_reports": 38414,
+    "research_papers": 506,
+    "data_sources": 4,
+    "ml_models": 4,
+    "avg_auc": 0.849,
+    "high_risk": 2
   },
   "profiles": [
     {
@@ -14,11 +23,18 @@
       "death_pct": 12.0,
       "disability_pct": 9.1,
       "risk_label": "HIGH",
-      "dependency_mention_rate": 17.9,
-      "withdrawal_mention_rate": 24.7,
-      "community_concern_score": 20.1,
-      "research_risk_consensus": 59.5,
-      "total_research_papers": 109,
+      "dependency_mention_rate": 33.3,
+      "withdrawal_mention_rate": 33.8,
+      "community_concern_score": 61.7,
+      "research_risk_consensus": 74.6,
+      "total_research_papers": 49,
+      "total_reports": 7314,
+      "age_distribution": {
+        "0-17": 22.7,
+        "18-34": 30.6,
+        "35-64": 15.4,
+        "65+": 31.2
+      },
       "top_5_reactions": [
         {
           "reaction": "Fatigue",
@@ -43,6 +59,7 @@
       ],
       "label_warning_severity": "LOW",
       "known_interactions": [
+        "MAO inhibitors",
         "SSRIs"
       ],
       "shap_values": [
@@ -96,11 +113,18 @@
       "death_pct": 4.3,
       "disability_pct": 15.6,
       "risk_label": "HIGH",
-      "dependency_mention_rate": 13.6,
-      "withdrawal_mention_rate": 17.9,
-      "community_concern_score": 69.6,
-      "research_risk_consensus": 19.5,
-      "total_research_papers": 27,
+      "dependency_mention_rate": 32.2,
+      "withdrawal_mention_rate": 26.4,
+      "community_concern_score": 39.5,
+      "research_risk_consensus": 15.2,
+      "total_research_papers": 67,
+      "total_reports": 6961,
+      "age_distribution": {
+        "0-17": 21.8,
+        "18-34": 28.3,
+        "35-64": 32.6,
+        "65+": 17.4
+      },
       "top_5_reactions": [
         {
           "reaction": "Headache",
@@ -125,10 +149,7 @@
       ],
       "label_warning_severity": "MEDIUM",
       "known_interactions": [
-        "Warfarin",
-        "MAO inhibitors",
-        "Benzodiazepines",
-        "Alcohol"
+        "Benzodiazepines"
       ],
       "shap_values": [
         {
@@ -181,11 +202,18 @@
       "death_pct": 3.0,
       "disability_pct": 11.1,
       "risk_label": "MEDIUM",
-      "dependency_mention_rate": 10.0,
-      "withdrawal_mention_rate": 10.5,
-      "community_concern_score": 28.1,
-      "research_risk_consensus": 71.9,
-      "total_research_papers": 88,
+      "dependency_mention_rate": 18.4,
+      "withdrawal_mention_rate": 5.8,
+      "community_concern_score": 23.4,
+      "research_risk_consensus": 15.8,
+      "total_research_papers": 8,
+      "total_reports": 3774,
+      "age_distribution": {
+        "0-17": 14.1,
+        "18-34": 15.9,
+        "35-64": 12.2,
+        "65+": 57.8
+      },
       "top_5_reactions": [
         {
           "reaction": "Vomiting",
@@ -210,7 +238,9 @@
       ],
       "label_warning_severity": "HIGH",
       "known_interactions": [
-        "Warfarin"
+        "Benzodiazepines",
+        "MAO inhibitors",
+        "Beta blockers"
       ],
       "shap_values": [
         {
@@ -263,11 +293,18 @@
       "death_pct": 2.9,
       "disability_pct": 9.9,
       "risk_label": "MEDIUM",
-      "dependency_mention_rate": 17.3,
-      "withdrawal_mention_rate": 21.6,
-      "community_concern_score": 77.8,
-      "research_risk_consensus": 64.3,
-      "total_research_papers": 26,
+      "dependency_mention_rate": 9.9,
+      "withdrawal_mention_rate": 18.5,
+      "community_concern_score": 28.5,
+      "research_risk_consensus": 30.4,
+      "total_research_papers": 8,
+      "total_reports": 1497,
+      "age_distribution": {
+        "0-17": 16.1,
+        "18-34": 45.1,
+        "35-64": 19.9,
+        "65+": 19.0
+      },
       "top_5_reactions": [
         {
           "reaction": "Fatigue",
@@ -292,10 +329,7 @@
       ],
       "label_warning_severity": "LOW",
       "known_interactions": [
-        "NSAIDs",
-        "Alcohol",
-        "MAO inhibitors",
-        "SSRIs"
+        "Beta blockers"
       ],
       "shap_values": [
         {
@@ -348,11 +382,18 @@
       "death_pct": 3.5,
       "disability_pct": 10.1,
       "risk_label": "MEDIUM",
-      "dependency_mention_rate": 20.5,
-      "withdrawal_mention_rate": 10.7,
-      "community_concern_score": 82.5,
-      "research_risk_consensus": 55.2,
-      "total_research_papers": 15,
+      "dependency_mention_rate": 6.8,
+      "withdrawal_mention_rate": 6.4,
+      "community_concern_score": 22.0,
+      "research_risk_consensus": 34.7,
+      "total_research_papers": 63,
+      "total_reports": 4037,
+      "age_distribution": {
+        "0-17": 22.9,
+        "18-34": 35.2,
+        "35-64": 23.0,
+        "65+": 18.9
+      },
       "top_5_reactions": [
         {
           "reaction": "Insomnia",
@@ -377,9 +418,9 @@
       ],
       "label_warning_severity": "LOW",
       "known_interactions": [
-        "SSRIs",
-        "NSAIDs",
-        "MAO inhibitors"
+        "MAO inhibitors",
+        "Alcohol",
+        "Warfarin"
       ],
       "shap_values": [
         {
@@ -432,11 +473,18 @@
       "death_pct": 3.6,
       "disability_pct": 8.9,
       "risk_label": "MEDIUM",
-      "dependency_mention_rate": 4.3,
-      "withdrawal_mention_rate": 3.3,
-      "community_concern_score": 23.4,
-      "research_risk_consensus": 30.1,
-      "total_research_papers": 107,
+      "dependency_mention_rate": 9.7,
+      "withdrawal_mention_rate": 7.3,
+      "community_concern_score": 20.1,
+      "research_risk_consensus": 73.8,
+      "total_research_papers": 94,
+      "total_reports": 3362,
+      "age_distribution": {
+        "0-17": 19.0,
+        "18-34": 18.0,
+        "35-64": 15.6,
+        "65+": 47.3
+      },
       "top_5_reactions": [
         {
           "reaction": "Insomnia",
@@ -461,7 +509,7 @@
       ],
       "label_warning_severity": "MEDIUM",
       "known_interactions": [
-        "MAO inhibitors"
+        "SSRIs"
       ],
       "shap_values": [
         {
@@ -514,11 +562,18 @@
       "death_pct": 3.1,
       "disability_pct": 6.0,
       "risk_label": "LOW",
-      "dependency_mention_rate": 11.4,
-      "withdrawal_mention_rate": 11.8,
-      "community_concern_score": 82.8,
-      "research_risk_consensus": 77.7,
-      "total_research_papers": 110,
+      "dependency_mention_rate": 11.8,
+      "withdrawal_mention_rate": 7.3,
+      "community_concern_score": 62.3,
+      "research_risk_consensus": 45.4,
+      "total_research_papers": 103,
+      "total_reports": 8969,
+      "age_distribution": {
+        "0-17": 17.0,
+        "18-34": 19.1,
+        "35-64": 18.2,
+        "65+": 45.6
+      },
       "top_5_reactions": [
         {
           "reaction": "Anxiety",
@@ -545,7 +600,6 @@
       "known_interactions": [
         "NSAIDs",
         "Benzodiazepines",
-        "Warfarin",
         "MAO inhibitors"
       ],
       "shap_values": [
@@ -599,11 +653,18 @@
       "death_pct": 1.5,
       "disability_pct": 2.6,
       "risk_label": "LOW",
-      "dependency_mention_rate": 7.4,
-      "withdrawal_mention_rate": 5.3,
-      "community_concern_score": 55.0,
-      "research_risk_consensus": 16.7,
-      "total_research_papers": 80,
+      "dependency_mention_rate": 6.2,
+      "withdrawal_mention_rate": 2.3,
+      "community_concern_score": 73.4,
+      "research_risk_consensus": 34.7,
+      "total_research_papers": 114,
+      "total_reports": 2500,
+      "age_distribution": {
+        "0-17": 31.6,
+        "18-34": 27.5,
+        "35-64": 25.7,
+        "65+": 15.2
+      },
       "top_5_reactions": [
         {
           "reaction": "Anxiety",
@@ -628,10 +689,9 @@
       ],
       "label_warning_severity": "LOW",
       "known_interactions": [
-        "MAO inhibitors",
         "Warfarin",
-        "Alcohol",
-        "SSRIs"
+        "MAO inhibitors",
+        "Alcohol"
       ],
       "shap_values": [
         {
@@ -676,6 +736,318 @@
         }
       ],
       "top_risk_factor": "res_total_papers"
+    }
+  ],
+  "model_metrics": [
+    {
+      "model": "Serious",
+      "auc": 0.854,
+      "f1": 0.58,
+      "log_loss": 0.289
+    },
+    {
+      "model": "Hospitalization",
+      "auc": 0.813,
+      "f1": 0.646,
+      "log_loss": 0.289
+    },
+    {
+      "model": "Death",
+      "auc": 0.913,
+      "f1": 0.646,
+      "log_loss": 0.385
+    },
+    {
+      "model": "Disability",
+      "auc": 0.816,
+      "f1": 0.563,
+      "log_loss": 0.309
+    }
+  ],
+  "feature_importance": [
+    {
+      "feature": "Drug identity",
+      "importance": 0.273
+    },
+    {
+      "feature": "Total report volume",
+      "importance": 0.263
+    },
+    {
+      "feature": "Has interactions",
+      "importance": 0.257
+    },
+    {
+      "feature": "Reddit mention volume",
+      "importance": 0.247
+    },
+    {
+      "feature": "Serious report count",
+      "importance": 0.239
+    },
+    {
+      "feature": "Label warning length",
+      "importance": 0.231
+    },
+    {
+      "feature": "Reddit engagement",
+      "importance": 0.217
+    },
+    {
+      "feature": "Age group",
+      "importance": 0.202
+    },
+    {
+      "feature": "Research volume",
+      "importance": 0.185
+    },
+    {
+      "feature": "Avg patient age",
+      "importance": 0.126
+    }
+  ],
+  "reaction_leaderboard": [
+    {
+      "reaction": "Fatigue",
+      "score": 106.7
+    },
+    {
+      "reaction": "Anxiety",
+      "score": 92.4
+    },
+    {
+      "reaction": "Somnolence",
+      "score": 82.4
+    },
+    {
+      "reaction": "Dizziness",
+      "score": 80.3
+    },
+    {
+      "reaction": "Tachycardia",
+      "score": 63.7
+    },
+    {
+      "reaction": "Tremor",
+      "score": 55.2
+    },
+    {
+      "reaction": "Insomnia",
+      "score": 53.9
+    },
+    {
+      "reaction": "Headache",
+      "score": 53.0
+    }
+  ],
+  "research_community": [
+    {
+      "drug": "Fentanyl",
+      "research": 74.6,
+      "community": 61.7,
+      "serious": 86.1,
+      "risk_label": "HIGH"
+    },
+    {
+      "drug": "Oxycodone",
+      "research": 15.2,
+      "community": 39.5,
+      "serious": 71.5,
+      "risk_label": "HIGH"
+    },
+    {
+      "drug": "Warfarin",
+      "research": 15.8,
+      "community": 23.4,
+      "serious": 61.0,
+      "risk_label": "MEDIUM"
+    },
+    {
+      "drug": "Xanax",
+      "research": 30.4,
+      "community": 28.5,
+      "serious": 50.4,
+      "risk_label": "MEDIUM"
+    },
+    {
+      "drug": "Adderall",
+      "research": 34.7,
+      "community": 22.0,
+      "serious": 43.2,
+      "risk_label": "MEDIUM"
+    },
+    {
+      "drug": "Metformin",
+      "research": 73.8,
+      "community": 20.1,
+      "serious": 34.3,
+      "risk_label": "MEDIUM"
+    },
+    {
+      "drug": "Lisinopril",
+      "research": 45.4,
+      "community": 62.3,
+      "serious": 22.3,
+      "risk_label": "LOW"
+    },
+    {
+      "drug": "Ibuprofen",
+      "research": 34.7,
+      "community": 73.4,
+      "serious": 10.3,
+      "risk_label": "LOW"
+    }
+  ],
+  "source_stats": [
+    {
+      "source": "FDA FAERS",
+      "icon": "\ud83e\ude79",
+      "records": 38414,
+      "unit": "adverse-event reports",
+      "note": "Serious reaction, hospitalization, death & disability signals"
+    },
+    {
+      "source": "PubMed",
+      "icon": "\ud83d\udcc4",
+      "records": 506,
+      "unit": "research abstracts",
+      "note": "Semantic index powering the research digest + RAG agent"
+    },
+    {
+      "source": "OpenFDA Labels",
+      "icon": "\ud83c\udff7\ufe0f",
+      "records": 8,
+      "unit": "structured drug labels",
+      "note": "Boxed warnings, interactions & warning severity"
+    },
+    {
+      "source": "Reddit",
+      "icon": "\ud83d\udcac",
+      "records": 13236,
+      "unit": "community posts",
+      "note": "Dependency, withdrawal & real-world concern signal"
+    }
+  ],
+  "pipeline_runs": [
+    {
+      "date": "2026-07-08",
+      "status": "running",
+      "duration_s": 563,
+      "rows": 19844,
+      "stages": [
+        "ingest",
+        "iceberg",
+        "spark",
+        "warehouse",
+        "dbt",
+        "train",
+        "embed"
+      ]
+    },
+    {
+      "date": "2026-07-07",
+      "status": "ok",
+      "duration_s": 345,
+      "rows": 4638,
+      "stages": [
+        "ingest",
+        "iceberg",
+        "spark",
+        "warehouse",
+        "dbt",
+        "train",
+        "embed"
+      ]
+    },
+    {
+      "date": "2026-07-06",
+      "status": "error",
+      "duration_s": 533,
+      "rows": 18264,
+      "stages": [
+        "ingest",
+        "iceberg",
+        "spark",
+        "warehouse",
+        "dbt",
+        "train",
+        "embed"
+      ]
+    },
+    {
+      "date": "2026-07-05",
+      "status": "ok",
+      "duration_s": 370,
+      "rows": 6862,
+      "stages": [
+        "ingest",
+        "iceberg",
+        "spark",
+        "warehouse",
+        "dbt",
+        "train",
+        "embed"
+      ]
+    },
+    {
+      "date": "2026-07-04",
+      "status": "error",
+      "duration_s": 501,
+      "rows": 5176,
+      "stages": [
+        "ingest",
+        "iceberg",
+        "spark",
+        "warehouse",
+        "dbt",
+        "train",
+        "embed"
+      ]
+    },
+    {
+      "date": "2026-07-03",
+      "status": "error",
+      "duration_s": 427,
+      "rows": 17221,
+      "stages": [
+        "ingest",
+        "iceberg",
+        "spark",
+        "warehouse",
+        "dbt",
+        "train",
+        "embed"
+      ]
+    },
+    {
+      "date": "2026-07-02",
+      "status": "ok",
+      "duration_s": 575,
+      "rows": 6888,
+      "stages": [
+        "ingest",
+        "iceberg",
+        "spark",
+        "warehouse",
+        "dbt",
+        "train",
+        "embed"
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "status": "ok",
+      "duration_s": 365,
+      "rows": 5516,
+      "stages": [
+        "ingest",
+        "iceberg",
+        "spark",
+        "warehouse",
+        "dbt",
+        "train",
+        "embed"
+      ]
     }
   ]
 }

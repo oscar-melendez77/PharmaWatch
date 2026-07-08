@@ -5,438 +5,713 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PharmaWatch — Drug Risk Intelligence</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --surface-1: #fcfcfb; --page: #f9f9f7;
-    --text-primary: #0b0b0b; --text-secondary: #52514e; --muted: #898781;
-    --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
-    --series-1: #2a78d6; --diverge-pos: #e34948; --diverge-neg: #2a78d6;
-    --good: #0ca30c; --warning: #fab219; --critical: #d03b3b;
+    --bg:#080b10; --surface:#0e131a; --surface-2:#141b24;
+    --border:#202a36; --border-2:#2e3b4a;
+    --text:#e6edf3; --muted:#8593a1;
+    --accent:#22c3a6; --accent-2:#38bdf8;
+    --low:#3fb950; --medium:#d6a020; --high:#f85149; --critical:#da3633;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --surface-1: #1a1a19; --page: #0d0d0d;
-      --text-primary: #ffffff; --text-secondary: #c3c2b7; --muted: #898781;
-      --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
-      --series-1: #3987e5; --diverge-pos: #e66767; --diverge-neg: #3987e5;
-    }
-  }
-  :root[data-theme="dark"] {
-    --surface-1: #1a1a19; --page: #0d0d0d;
-    --text-primary: #ffffff; --text-secondary: #c3c2b7; --muted: #898781;
-    --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
-    --series-1: #3987e5; --diverge-pos: #e66767; --diverge-neg: #3987e5;
-  }
-  :root[data-theme="light"] {
-    --surface-1: #fcfcfb; --page: #f9f9f7;
-    --text-primary: #0b0b0b; --text-secondary: #52514e; --muted: #898781;
-    --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
-    --series-1: #2a78d6; --diverge-pos: #e34948; --diverge-neg: #2a78d6;
-  }
-  * { box-sizing: border-box; }
+  * { box-sizing:border-box; margin:0; padding:0; }
   body {
-    margin: 0; background: var(--page); color: var(--text-primary);
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    line-height: 1.5;
+    background:var(--bg); color:var(--text); line-height:1.6;
+    font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
   }
-  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 64px; }
-  header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  h1 { font-size: 1.6rem; margin: 0; letter-spacing: -0.01em; }
-  h2 { font-size: 1.05rem; margin: 32px 0 12px; font-weight: 600; }
-  .sub { color: var(--text-secondary); margin: 4px 0 0; font-size: 0.95rem; }
-  .badge { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
-    padding: 4px 9px; border-radius: 999px; border: 1px solid var(--border);
-    color: var(--text-secondary); white-space: nowrap; }
-  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
-  button.toggle { background: var(--surface-1); color: var(--text-secondary);
-    border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
-    font: inherit; font-size: 0.85rem; cursor: pointer; }
-  select { background: var(--surface-1); color: var(--text-primary);
-    border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: inherit; }
-  .card { background: var(--surface-1); border: 1px solid var(--border);
-    border-radius: 14px; padding: 16px; }
-  .grid-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .tile { background: var(--surface-1); border: 1px solid var(--border);
-    border-radius: 14px; padding: 14px 16px; }
-  .tile .lbl { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
-  .tile .val { font-size: 1.7rem; font-weight: 650; margin-top: 4px; }
-  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
-  .kpi { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; background: var(--surface-1); }
-  .kpi .lbl { color: var(--muted); font-size: 0.72rem; }
-  .kpi .val { font-size: 1.15rem; font-weight: 600; margin-top: 2px; }
-  .pill { display: inline-flex; align-items: center; gap: 7px; font-weight: 650;
-    padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); font-size: 0.9rem; }
-  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-  .detail-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-  .detail-head .name { font-size: 1.3rem; font-weight: 650; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .chart { width: 100%; height: 300px; }
-  .chart-tall { height: 360px; }
-  .tags { display: flex; gap: 8px; flex-wrap: wrap; }
-  .tag { border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; font-size: 0.85rem; color: var(--text-secondary); }
-  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-  th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
-  th:first-child, td:first-child { text-align: left; font-variant-numeric: normal; }
-  th { color: var(--muted); font-weight: 600; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
-  .table-scroll { overflow-x: auto; }
-  .api-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
-  .api-ok { color: var(--good); font-size: 0.85rem; font-weight: 600; }
-  .api-off { color: var(--muted); font-size: 0.85rem; }
-  input[type="text"], input[type="number"] { background: var(--surface-1); color: var(--text-primary);
-    border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: inherit; }
-  .chat-profile { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-  .chat-profile label { font-size: 0.82rem; color: var(--text-secondary); display: flex; gap: 6px; align-items: center; }
-  .chat-log { height: 280px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;
-    padding: 12px; background: var(--surface-1); display: flex; flex-direction: column; gap: 10px; }
-  .msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 0.9rem; white-space: pre-wrap; line-height: 1.45; }
-  .msg.user { align-self: flex-end; background: var(--series-1); color: #fff; }
-  .msg.bot { align-self: flex-start; border: 1px solid var(--border); color: var(--text-primary); }
-  .msg.sys { align-self: center; color: var(--muted); font-size: 0.82rem; }
-  .chat-input-row { display: flex; gap: 8px; margin-top: 10px; }
-  .chat-input-row input { flex: 1; }
-  .send-btn { background: var(--series-1); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font: inherit; cursor: pointer; }
-  footer { margin-top: 40px; color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--border); padding-top: 16px; }
-  a { color: var(--series-1); }
-  @media (max-width: 720px) {
-    .grid-tiles { grid-template-columns: repeat(2, 1fr); }
-    .kpis { grid-template-columns: repeat(2, 1fr); }
-    .two-col { grid-template-columns: 1fr; }
+  a { color:var(--accent); text-decoration:none; }
+  ::selection { background:rgba(34,195,166,.25); }
+
+  /* NAV */
+  nav {
+    position:sticky; top:0; z-index:100; height:56px;
+    background:rgba(8,11,16,.9); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid var(--border); padding:0 24px;
+    display:flex; align-items:center; gap:24px;
   }
+  nav .logo { font-weight:800; font-size:.95rem; letter-spacing:-.02em; color:var(--text);
+    display:flex; align-items:center; gap:9px; flex-shrink:0; }
+  nav .logo-dot { width:8px; height:8px; background:var(--accent); border-radius:50%;
+    box-shadow:0 0 10px rgba(34,195,166,.9); }
+  nav .links { display:flex; gap:20px; overflow-x:auto; scrollbar-width:none; }
+  nav .links::-webkit-scrollbar { display:none; }
+  nav a.nl { color:var(--muted); font-size:.82rem; font-weight:500; white-space:nowrap; transition:color .15s; }
+  nav a.nl:hover { color:var(--text); }
+  nav .tag { margin-left:auto; flex-shrink:0; font-family:'IBM Plex Mono',monospace;
+    background:rgba(34,195,166,.08); border:1px solid rgba(34,195,166,.25); color:var(--accent);
+    font-size:.66rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; padding:4px 11px; border-radius:2px; }
+
+  /* HERO */
+  .hero { text-align:center; padding:96px 24px 68px; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; inset:0; pointer-events:none; background:
+    radial-gradient(ellipse 75% 50% at 50% -8%, rgba(34,195,166,.12) 0%, transparent 62%),
+    radial-gradient(ellipse 40% 40% at 12% 60%, rgba(56,189,248,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 88% 65%, rgba(248,81,73,.05) 0%, transparent 60%); }
+  .hero .badge, .kicker {
+    display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace;
+    background:rgba(34,195,166,.07); border:1px solid rgba(34,195,166,.22); color:var(--accent);
+    font-size:.72rem; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
+    padding:5px 14px; border-radius:2px; margin-bottom:26px; }
+  .hero .badge::before { content:''; width:5px; height:5px; background:var(--accent); box-shadow:0 0 6px var(--accent); }
+  .hero h1 { font-size:clamp(2.1rem,5.4vw,3.7rem); font-weight:900; line-height:1.08; letter-spacing:-.025em; margin-bottom:20px; }
+  .grad { background:linear-gradient(120deg,#22c3a6 0%,#38bdf8 55%,#8ce0ff 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .hero p.lede { color:var(--muted); max-width:600px; margin:0 auto 26px; font-size:1.06rem; line-height:1.75; }
+  .chips { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:8px; }
+  .chip { font-family:'IBM Plex Mono',monospace; font-size:.76rem; padding:6px 13px; border-radius:2px;
+    border:1px solid var(--border-2); background:var(--surface-2); color:var(--muted); cursor:pointer; transition:all .15s; }
+  .chip:hover { border-color:var(--accent); color:var(--text); }
+  .data-flag { font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--muted); margin-top:22px; }
+  .data-flag b { color:var(--accent); }
+
+  /* STAT BAR */
+  .statbar { border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(20,27,36,.5), rgba(8,11,16,0)); }
+  .statbar .inner { max-width:1120px; margin:0 auto; display:flex; flex-wrap:wrap; justify-content:space-around; padding:26px 20px; }
+  .stat { text-align:center; padding:10px 22px; }
+  .stat .v { font-size:2.3rem; font-weight:800; line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+  .stat .l { font-family:'IBM Plex Mono',monospace; font-size:.7rem; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.07em; margin-top:7px; }
+
+  /* SECTIONS */
+  section { max-width:1120px; margin:0 auto; padding:68px 24px; }
+  section + section, .band + section { border-top:1px solid var(--border); }
+  .section-label { display:inline-flex; align-items:center; font-family:'IBM Plex Mono',monospace;
+    font-size:.68rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--accent);
+    background:rgba(34,195,166,.07); border:1px solid rgba(34,195,166,.18); padding:3px 10px; border-radius:2px; margin-bottom:14px; }
+  h2 { font-size:1.7rem; font-weight:800; letter-spacing:-.015em; margin-bottom:8px; }
+  .subtitle { color:var(--muted); font-size:.96rem; max-width:680px; line-height:1.7; margin-bottom:32px; }
+  .narrative p { color:var(--muted); font-size:1.02rem; line-height:1.85; margin-bottom:16px; max-width:760px; }
+  .narrative p strong { color:var(--text); font-weight:600; }
+
+  /* CARDS + GRID */
+  .card { background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:22px; transition:border-color .2s; }
+  .card:hover { border-color:var(--border-2); }
+  .card h3 { font-size:.86rem; font-weight:600; margin-bottom:14px; color:var(--text); }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .grid-3 { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+  @media (max-width:860px){ .grid-2 { grid-template-columns:1fr; } }
+  .chart { width:100%; min-height:300px; }
+  .chart-sm { width:100%; min-height:240px; }
+
+  /* SOURCE CARDS */
+  .src { background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:22px; }
+  .src .head { display:flex; align-items:center; gap:13px; margin-bottom:12px; }
+  .src .emoji { font-size:1.7rem; }
+  .src .name { font-weight:700; font-size:1.02rem; }
+  .src .kind { font-size:.76rem; color:var(--muted); font-family:'IBM Plex Mono',monospace; }
+  .src p { font-size:.86rem; color:var(--muted); line-height:1.7; margin-bottom:12px; }
+  .src .rec { font-family:'IBM Plex Mono',monospace; font-size:.78rem; color:var(--accent);
+    border-top:1px solid var(--border); padding-top:11px; font-variant-numeric:tabular-nums; }
+
+  /* PIPELINE STAGES */
+  .stages { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
+  .stage { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent);
+    border-radius:3px; padding:14px 16px; }
+  .stage .n { font-family:'IBM Plex Mono',monospace; font-size:.64rem; color:var(--muted); letter-spacing:.1em; }
+  .stage .t { font-weight:700; font-size:.92rem; margin:3px 0 4px; }
+  .stage .d { font-size:.76rem; color:var(--muted); line-height:1.55; }
+
+  /* EXPLORER */
+  .explorer-head { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
+  select, input[type=text], input[type=number] { background:var(--surface); color:var(--text);
+    border:1px solid var(--border-2); border-radius:4px; padding:9px 12px; font:inherit; font-size:.9rem; }
+  .name-lg { font-size:1.35rem; font-weight:800; letter-spacing:-.01em; }
+  .pill { display:inline-flex; align-items:center; gap:7px; font-weight:700; font-size:.82rem;
+    padding:5px 13px; border-radius:2px; font-family:'IBM Plex Mono',monospace; letter-spacing:.04em; }
+  .dot { width:9px; height:9px; border-radius:50%; }
+  .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+  @media (max-width:640px){ .tiles { grid-template-columns:repeat(2,1fr); } }
+  .tile { background:var(--surface); border:1px solid var(--border); border-radius:5px; padding:15px 16px; position:relative; overflow:hidden; }
+  .tile::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--accent); opacity:.8; }
+  .tile.risk-hi::before { background:var(--high); } .tile.risk-md::before { background:var(--medium); } .tile.risk-lo::before { background:var(--low); }
+  .tile .lbl { font-family:'IBM Plex Mono',monospace; font-size:.66rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .tile .val { font-size:1.75rem; font-weight:800; margin-top:4px; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+  .tile .base { font-size:.72rem; color:var(--muted); margin-top:2px; }
+  .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:14px; }
+  @media (max-width:640px){ .kpis { grid-template-columns:repeat(2,1fr); } }
+  .kpi { background:var(--surface); border:1px solid var(--border); border-radius:5px; padding:12px 14px; }
+  .kpi .lbl { font-family:'IBM Plex Mono',monospace; font-size:.64rem; color:var(--muted); text-transform:uppercase; }
+  .kpi .val { font-size:1.15rem; font-weight:700; margin-top:3px; font-variant-numeric:tabular-nums; }
+  .tags { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .tag { font-family:'IBM Plex Mono',monospace; font-size:.78rem; color:var(--muted);
+    border:1px solid var(--border); border-radius:3px; padding:4px 10px; }
+
+  /* INSIGHTS */
+  .insight { background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:20px; position:relative; overflow:hidden; }
+  .insight::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--accent); }
+  .insight.a::after { background:var(--high); } .insight.b::after { background:var(--accent-2); } .insight.c::after { background:var(--medium); }
+  .insight .k { font-family:'IBM Plex Mono',monospace; font-size:.66rem; color:var(--muted); text-transform:uppercase; letter-spacing:.09em; margin-bottom:8px; }
+  .insight .h { font-size:1.1rem; font-weight:800; margin-bottom:6px; letter-spacing:-.01em; }
+  .insight .p { font-size:.84rem; color:var(--muted); line-height:1.65; }
+
+  /* PIPELINE LOG */
+  .runrow { display:grid; grid-template-columns:120px 90px 90px 90px 1fr; gap:12px; align-items:center;
+    padding:11px 14px; border-bottom:1px solid var(--border); font-size:.82rem; }
+  .runrow.h { font-family:'IBM Plex Mono',monospace; font-size:.66rem; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--muted); border-bottom:1px solid var(--border-2); }
+  .runrow .ok { color:var(--low); font-weight:700; } .runrow .err { color:var(--high); font-weight:700; } .runrow .run { color:var(--medium); font-weight:700; }
+  .modpills { display:flex; flex-wrap:wrap; gap:4px; }
+  .modpill { font-family:'IBM Plex Mono',monospace; font-size:.6rem; padding:1px 6px; border-radius:2px;
+    background:rgba(34,195,166,.09); color:var(--accent); border:1px solid rgba(34,195,166,.16); }
+  @media (max-width:640px){ .runrow { grid-template-columns:90px 70px 1fr; } .runrow .hide-sm { display:none; } }
+
+  /* TECH */
+  .tech { display:flex; flex-wrap:wrap; gap:8px; }
+  .tech .p { font-family:'IBM Plex Mono',monospace; font-size:.8rem; color:var(--muted);
+    background:var(--surface-2); border:1px solid var(--border); border-radius:2px; padding:7px 14px; transition:all .15s; }
+  .tech .p:hover { border-color:var(--accent); color:var(--text); }
+
+  /* CHAT */
+  .api-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+  .api-ok { color:var(--low); font-size:.82rem; font-weight:600; font-family:'IBM Plex Mono',monospace; }
+  .api-off { color:var(--muted); font-size:.82rem; font-family:'IBM Plex Mono',monospace; }
+  .chat-profile { display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  .chat-profile label { font-size:.8rem; color:var(--muted); display:flex; gap:6px; align-items:center; }
+  .chat-log { height:300px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; padding:14px;
+    background:var(--surface); display:flex; flex-direction:column; gap:10px; }
+  .msg { max-width:86%; padding:9px 13px; border-radius:9px; font-size:.9rem; white-space:pre-wrap; line-height:1.5; }
+  .msg.user { align-self:flex-end; background:linear-gradient(120deg,#22c3a6,#1aa38b); color:#04110d; font-weight:500; }
+  .msg.bot { align-self:flex-start; border:1px solid var(--border-2); color:var(--text); background:var(--surface-2); }
+  .msg.sys { align-self:center; color:var(--muted); font-size:.8rem; font-family:'IBM Plex Mono',monospace; }
+  .chat-input-row { display:flex; gap:8px; margin-top:12px; }
+  .chat-input-row input { flex:1; }
+  .btn { font-family:'IBM Plex Mono',monospace; font-size:.82rem; font-weight:600; letter-spacing:.03em;
+    border:1px solid var(--border-2); background:var(--surface-2); color:var(--muted); border-radius:4px; padding:9px 14px; cursor:pointer; transition:all .15s; }
+  .btn:hover { border-color:var(--accent); color:var(--text); }
+  .btn.primary { background:linear-gradient(120deg,#22c3a6,#1aa38b); color:#04110d; border:none; font-weight:700; }
+
+  /* FOOTER */
+  footer { border-top:1px solid var(--border); text-align:center; padding:44px 24px 90px; color:var(--muted); font-size:.85rem; }
+  .devbar { position:fixed; bottom:0; left:0; right:0; z-index:200; padding:9px 20px;
+    background:rgba(8,11,16,.95); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border-top:1px solid var(--border); display:flex; align-items:center; justify-content:center; gap:14px;
+    font-family:'IBM Plex Mono',monospace; font-size:.74rem; color:var(--muted); flex-wrap:wrap; }
+  .devbar .nm { color:var(--text); font-weight:600; } .devbar .sep { color:var(--border-2); }
+  .table-scroll { overflow-x:auto; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <h1>PharmaWatch</h1>
-      <p class="sub">Drug risk intelligence — adverse-event scores, research signal, and community sentiment per drug.</p>
-    </div>
-    <div style="text-align:right">
-      <span class="badge" id="modeBadge">loading…</span>
-      <div class="toolbar">
-        <button class="toggle" id="themeBtn">◐ Theme</button>
-      </div>
-    </div>
-  </header>
 
-  <h2>Serious reaction risk by drug</h2>
-  <div class="card"><div id="rankChart" class="chart chart-tall"></div></div>
+<nav>
+  <a class="logo" href="#top"><span class="logo-dot"></span>PharmaWatch</a>
+  <div class="links">
+    <a class="nl" href="#data">Data</a>
+    <a class="nl" href="#pipeline">Pipeline</a>
+    <a class="nl" href="#risk">Risk</a>
+    <a class="nl" href="#explorer">Explorer</a>
+    <a class="nl" href="#research">Research</a>
+    <a class="nl" href="#model">Model</a>
+    <a class="nl" href="#agent">Agent</a>
+  </div>
+  <span class="tag">Portfolio Project</span>
+</nav>
 
-  <h2>Drug detail</h2>
+<div id="top" class="hero">
+  <div class="badge">Data Engineering · ML · GenAI</div>
+  <h1>Know a drug's <span class="grad">real risk</span>.<br>For your body.</h1>
+  <p class="lede">An end-to-end pipeline that scores adverse-event risk for any medication from
+     FDA FAERS, PubMed, OpenFDA & Reddit — explains it with SHAP, personalizes it to your
+     profile, and answers follow-ups with a grounded AI agent.</p>
+  <div class="chips" id="heroChips"></div>
+  <div class="data-flag" id="dataFlag">loading…</div>
+</div>
+
+<div class="statbar">
+  <div class="inner" id="statbar"></div>
+</div>
+
+<!-- PROBLEM -->
+<section id="problem" class="narrative">
+  <div class="section-label">The Problem</div>
+  <h2>Every drug's risk is buried across a dozen datasets.</h2>
+  <p>When you're prescribed a medication, the signals that actually tell you how risky it is
+     for <strong>you</strong> live in separate silos: the FDA's raw adverse-event reports,
+     decades of PubMed research, structured drug labels, and thousands of real patient
+     conversations. None of them talk to each other, and none of them are tuned to your age,
+     sex, or habits.</p>
+  <p>PharmaWatch joins all four into a single per-drug profile, trains four gradient-boosted
+     models to score <strong>serious reactions, hospitalization, death, and disability</strong>,
+     and layers a transparent personalization pass on top — then lets you interrogate the
+     result in plain language. Everything below runs from one pipeline.</p>
+</section>
+
+<!-- DATA SOURCES -->
+<section id="data">
+  <div class="section-label">The Data</div>
+  <h2>Four Sources. One Profile.</h2>
+  <p class="subtitle">Each source captures a different slice of drug risk — regulatory signal,
+     peer-reviewed evidence, official labelling, and lived patient experience. All public, all reproducible.</p>
+  <div class="grid-3" id="sources"></div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <div class="section-label">The Architecture</div>
+  <h2>Raw APIs → Lakehouse → Models → Agent.</h2>
+  <p class="subtitle">A multi-cloud lakehouse pipeline: Kafka + Airflow ingestion, a Great Expectations
+     quality gate, Apache Iceberg on S3, Scala Spark transforms on Databricks, a switchable Snowflake/BigQuery
+     warehouse, dbt marts, LightGBM + MLflow, and a ChromaDB-backed RAG agent — served through FastAPI.</p>
+  <div class="stages" id="stages"></div>
+</section>
+
+<!-- RISK OVERVIEW -->
+<section id="risk">
+  <div class="section-label">Risk Overview</div>
+  <h2>Which drugs carry the most serious risk?</h2>
+  <p class="subtitle">Model-scored serious-reaction risk across the tracked drugs, and the full
+     outcome matrix — serious, hospitalization, death, and disability — normalized per column so every
+     outcome is comparable.</p>
+  <div class="grid-2">
+    <div class="card"><h3>Serious reaction risk by drug</h3><div id="chart-rank" class="chart"></div></div>
+    <div class="card"><h3>Risk matrix — outcome × drug</h3><div id="chart-matrix" class="chart"></div></div>
+  </div>
+</section>
+
+<!-- EXPLORER -->
+<section id="explorer">
+  <div class="section-label">Drug Explorer</div>
+  <h2>Break down any drug.</h2>
+  <p class="subtitle">Pick a drug to see its four risk scores, what's driving them (SHAP), the reaction
+     breakdown, and who's affected — plus a live personalization if you connect the API in the Agent section.</p>
   <div class="card">
-    <div class="detail-head">
+    <div class="explorer-head">
       <select id="drugSelect" aria-label="Select drug"></select>
-      <span class="name" id="detailName"></span>
+      <span class="name-lg" id="detailName"></span>
       <span class="pill" id="riskPill"></span>
       <span class="tag" id="warnTag"></span>
     </div>
-
-    <div class="grid-tiles" style="margin-top:16px">
-      <div class="tile"><div class="lbl">Serious reaction</div><div class="val" id="tSerious">—</div></div>
-      <div class="tile"><div class="lbl">Hospitalization</div><div class="val" id="tHosp">—</div></div>
-      <div class="tile"><div class="lbl">Death</div><div class="val" id="tDeath">—</div></div>
-      <div class="tile"><div class="lbl">Disability</div><div class="val" id="tDisab">—</div></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="grid-2" style="margin-top:6px">
+      <div class="card" style="background:var(--surface)"><h3>Risk factor contributions (SHAP)</h3><div id="chart-shap" class="chart-sm"></div></div>
+      <div class="card" style="background:var(--surface)"><h3>Adverse reports by age group</h3><div id="chart-age" class="chart-sm"></div></div>
     </div>
-
-    <div class="kpis">
-      <div class="kpi"><div class="lbl">Community concern</div><div class="val" id="kConcern">—</div></div>
-      <div class="kpi"><div class="lbl">Research risk consensus</div><div class="val" id="kConsensus">—</div></div>
-      <div class="kpi"><div class="lbl">Research papers</div><div class="val" id="kPapers">—</div></div>
-      <div class="kpi"><div class="lbl">Dependency mentions</div><div class="val" id="kDep">—</div></div>
-      <div class="kpi"><div class="lbl">Withdrawal mentions</div><div class="val" id="kWd">—</div></div>
-      <div class="kpi"><div class="lbl">Top risk factor</div><div class="val" id="kTop">—</div></div>
+    <div class="grid-2" style="margin-top:18px">
+      <div class="card" style="background:var(--surface)"><h3>Top reactions</h3><div id="chart-react-drug" class="chart-sm"></div></div>
+      <div>
+        <div class="kpis" id="kpis"></div>
+        <h3 style="margin:18px 0 8px;font-size:.86rem">Known interactions</h3>
+        <div class="tags" id="interTags"></div>
+      </div>
     </div>
-
-    <div class="two-col" style="margin-top:16px">
-      <div><h2 style="margin-top:0">Top reactions</h2><div id="reactChart" class="chart"></div></div>
-      <div><h2 style="margin-top:0">Risk factor contributions (SHAP)</h2><div id="shapChart" class="chart"></div></div>
-    </div>
-
-    <h2>Known interactions</h2>
-    <div class="tags" id="interTags"></div>
   </div>
+</section>
 
-  <h2>Ask the agent</h2>
+<!-- RESEARCH & COMMUNITY -->
+<section id="research">
+  <div class="section-label">Research & Community</div>
+  <h2>Where evidence meets lived experience.</h2>
+  <p class="subtitle">Peer-reviewed research risk consensus versus real-world community concern — bubble
+     size is model serious-risk. And the reactions patients report most across all tracked drugs.</p>
+  <div class="grid-2">
+    <div class="card"><h3>Research consensus vs. community concern</h3><div id="chart-scatter" class="chart"></div></div>
+    <div class="card"><h3>Most-reported reactions (all drugs)</h3><div id="chart-reactions" class="chart"></div></div>
+  </div>
+</section>
+
+<!-- MODEL -->
+<section id="model">
+  <div class="section-label">The Models</div>
+  <h2>Four classifiers, tracked in MLflow.</h2>
+  <p class="subtitle">LightGBM classifiers for each outcome, AUC-gated and promoted to Production
+     automatically. SHAP feature importance, aggregated across drugs, shows what the models lean on.</p>
+  <div class="grid-2">
+    <div class="card"><h3>Model performance (ROC AUC)</h3><div id="chart-auc" class="chart"></div></div>
+    <div class="card"><h3>Feature importance (mean |SHAP|)</h3><div id="chart-importance" class="chart"></div></div>
+  </div>
+</section>
+
+<!-- PIPELINE LOG -->
+<section id="runs">
+  <div class="section-label">Pipeline Runs</div>
+  <h2>It runs itself, daily.</h2>
+  <p class="subtitle">A GitHub Actions workflow refreshes this dashboard every day and commits it back —
+     the same self-updating pattern the whole pipeline uses. Recent runs:</p>
+  <div class="card" style="padding:6px 0">
+    <div class="runrow h"><div>Date</div><div>Status</div><div class="hide-sm">Duration</div><div class="hide-sm">Rows</div><div>Stages</div></div>
+    <div id="runlog"></div>
+  </div>
+</section>
+
+<!-- AGENT -->
+<section id="agent">
+  <div class="section-label">AI Agent</div>
+  <h2>Ask it anything about your meds.</h2>
+  <p class="subtitle">A Groq + Llama 3 agent that reasons over the model scores, PubMed research, Reddit
+     sentiment, and FDA labels — personalized to the profile below. Connect the live API to chat.</p>
   <div class="card">
     <div class="api-row">
       <span id="apiStatus" class="api-off">● backend not connected</span>
       <input type="text" id="apiInput" placeholder="https://your-api.onrender.com" style="flex:1;min-width:220px" />
-      <button class="toggle" id="apiSave">Save API URL</button>
+      <button class="btn" id="apiSave">Save API URL</button>
     </div>
     <div class="chat-profile">
-      <label>Age <input type="number" id="chatAge" value="30" style="width:64px" /></label>
+      <label>Age <input type="number" id="chatAge" value="30" style="width:66px" /></label>
       <label>Sex
-        <select id="chatSex">
-          <option value=""></option><option value="female">female</option>
-          <option value="male">male</option><option value="other">other</option>
-        </select>
+        <select id="chatSex"><option value=""></option><option value="female">female</option><option value="male">male</option><option value="other">other</option></select>
       </label>
       <label>Alcohol
-        <select id="chatAlcohol">
-          <option value="none">none</option><option value="moderate">moderate</option><option value="heavy">heavy</option>
-        </select>
+        <select id="chatAlcohol"><option value="none">none</option><option value="moderate">moderate</option><option value="heavy">heavy</option></select>
       </label>
       <label><input type="checkbox" id="chatSmoker" /> smoker</label>
     </div>
     <div class="chat-log" id="chatLog"></div>
     <div class="chat-input-row">
       <input type="text" id="chatInput" placeholder="e.g. Is this safe for me given my profile?" />
-      <button class="send-btn" id="chatSend">Send</button>
+      <button class="btn primary" id="chatSend">Send</button>
     </div>
-    <p style="color:var(--muted);font-size:0.8rem;margin-top:8px">
-      Answers about the selected drug (<b id="chatDrug">—</b>) using FAERS risk scores, PubMed,
-      Reddit, and FDA labels. Requires the live API — paste its URL above or deploy it.
-    </p>
+    <p style="color:var(--muted);font-size:.8rem;margin-top:10px">
+      Answers about the selected drug (<b id="chatDrug">—</b>) using FAERS risk scores, PubMed, Reddit &
+      FDA labels. See <a href="https://github.com/oscar-melendez77/PharmaWatch/blob/main/DEPLOY.md">DEPLOY.md</a>
+      for the one-key demo API.</p>
   </div>
+</section>
 
-  <h2>All drugs</h2>
-  <div class="card table-scroll">
-    <table>
-      <thead><tr>
-        <th>Drug</th><th>Risk</th><th>Serious %</th><th>Hosp %</th><th>Death %</th>
-        <th>Disab %</th><th>Concern</th><th>Papers</th>
-      </tr></thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
+<!-- INSIGHTS + TECH -->
+<section id="insights">
+  <div class="section-label">Takeaways</div>
+  <h2>What the pipeline surfaces.</h2>
+  <div class="grid-3" id="insights" style="margin-bottom:36px"></div>
+  <div class="section-label">Built with</div>
+  <h2 style="margin-bottom:18px">The stack.</h2>
+  <div class="tech" id="tech"></div>
+</section>
 
-  <footer id="footer"></footer>
-</div>
+<footer id="footer"></footer>
+<div class="devbar" id="devbar"></div>
 
 <script>
-const V = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const STATUS = { LOW: "--good", MEDIUM: "--warning", HIGH: "--critical" };
+const C = {
+  bg:'#080b10', surface:'#0e131a', surface2:'#141b24', border:'#202a36', border2:'#2e3b4a',
+  text:'#e6edf3', muted:'#8593a1', accent:'#22c3a6', accent2:'#38bdf8',
+  low:'#3fb950', medium:'#d6a020', high:'#f85149'
+};
+const RISK = { LOW:C.low, MEDIUM:C.medium, HIGH:C.high };
+const FONT = "'Space Grotesk',sans-serif";
+const CFG = { displayModeBar:false, responsive:true };
 let DATA = null, current = null;
 
-function baseLayout() {
-  return {
-    paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
-    font: { family: "system-ui, -apple-system, 'Segoe UI', sans-serif", color: V("--text-secondary"), size: 12 },
-    margin: { l: 96, r: 24, t: 8, b: 36 },
-    xaxis: { gridcolor: V("--grid"), zerolinecolor: V("--baseline"), tickcolor: V("--baseline") },
-    yaxis: { gridcolor: "rgba(0,0,0,0)", zerolinecolor: V("--baseline") },
-    showlegend: false,
-  };
+function layout(o) {
+  return Object.assign({
+    paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
+    font:{ family:FONT, color:C.muted, size:12 },
+    margin:{ l:112, r:18, t:8, b:38 },
+    xaxis:{ gridcolor:C.border, zerolinecolor:C.border2, linecolor:C.border, tickfont:{size:11} },
+    yaxis:{ gridcolor:'rgba(0,0,0,0)', zerolinecolor:C.border2, linecolor:C.border, tickfont:{size:11} },
+    showlegend:false, hoverlabel:{ font:{ family:FONT } }
+  }, o || {});
 }
-const CONFIG = { displayModeBar: false, responsive: true };
+const fmt = n => n >= 1000 ? (n/1000).toFixed(n>=10000?0:1)+'k' : String(n);
 
-function renderRank() {
-  const p = [...DATA.profiles].sort((a, b) => a.serious_reaction_pct - b.serious_reaction_pct);
-  const trace = {
-    type: "bar", orientation: "h",
-    y: p.map(d => d.drug_name), x: p.map(d => d.serious_reaction_pct),
-    marker: { color: V("--series-1"), line: { width: 0 } },
-    text: p.map(d => d.serious_reaction_pct.toFixed(1) + "%"),
-    textposition: "auto", insidetextfont: { color: "#fff" }, cliponaxis: false,
-    hovertemplate: "%{y}: %{x:.1f}% serious<extra></extra>",
-  };
-  const layout = baseLayout();
-  layout.xaxis.title = { text: "Serious reaction risk (%)", font: { size: 11, color: V("--muted") } };
-  Plotly.newPlot("rankChart", [trace], layout, CONFIG);
-  document.getElementById("rankChart").on("plotly_click", (e) => select(e.points[0].y));
-}
-
-function renderReactions(d) {
-  const r = [...d.top_5_reactions].sort((a, b) => a.frequency_pct - b.frequency_pct);
-  const trace = {
-    type: "bar", orientation: "h",
-    y: r.map(x => x.reaction), x: r.map(x => x.frequency_pct),
-    marker: { color: V("--series-1") },
-    text: r.map(x => x.frequency_pct.toFixed(1) + "%"), textposition: "auto",
-    insidetextfont: { color: "#fff" }, cliponaxis: false,
-    hovertemplate: "%{y}: %{x:.1f}%<extra></extra>",
-  };
-  Plotly.newPlot("reactChart", [trace], baseLayout(), CONFIG);
+/* ---------- STATIC SECTIONS ---------- */
+function renderStatbar() {
+  const s = DATA.stats;
+  const cells = [
+    ['drugs','Drugs analyzed', C.accent],
+    ['adverse_reports','Adverse-event reports', C.accent2],
+    ['research_papers','Research abstracts', C.accent],
+    ['avg_auc','Avg model AUC', C.low, true],
+    ['high_risk','High-risk drugs', C.high],
+    ['data_sources','Data sources', C.accent2],
+  ];
+  document.getElementById('statbar').innerHTML = cells.map(([k,l,col,isAuc]) => {
+    const raw = s[k];
+    const v = isAuc ? raw.toFixed(3) : fmt(raw);
+    return `<div class="stat"><div class="v" style="color:${col}">${v}</div><div class="l">${l}</div></div>`;
+  }).join('');
 }
 
-function renderShap(d) {
-  const s = [...d.shap_values].sort((a, b) => Math.abs(a.contribution) - Math.abs(b.contribution)).slice(-8);
-  const trace = {
-    type: "bar", orientation: "h",
-    y: s.map(x => x.feature), x: s.map(x => x.contribution),
-    marker: { color: s.map(x => x.contribution >= 0 ? V("--diverge-pos") : V("--diverge-neg")) },
-    hovertemplate: "%{y}: %{x:.3f}<extra></extra>",
-  };
-  const layout = baseLayout();
-  layout.xaxis.title = { text: "← lowers risk    raises risk →", font: { size: 11, color: V("--muted") } };
-  Plotly.newPlot("shapChart", [trace], layout, CONFIG);
+function renderSources() {
+  document.getElementById('sources').innerHTML = DATA.source_stats.map(s => `
+    <div class="src">
+      <div class="head"><span class="emoji">${s.icon}</span>
+        <div><div class="name">${s.source}</div><div class="kind">${s.unit}</div></div></div>
+      <p>${s.note}</p>
+      <div class="rec">${s.records.toLocaleString()} ${s.unit}</div>
+    </div>`).join('');
 }
 
-function select(name) {
+const STAGES = [
+  ['01','Terraform','AWS S3, IAM, Glue, BigQuery & Snowflake as code'],
+  ['02','Kafka + Airflow','Reddit streaming + FAERS/PubMed/OpenFDA batch DAGs'],
+  ['03','Great Expectations','Quality gate halts the run on bad batches'],
+  ['04','Apache Iceberg','Raw + clean table state on S3 via Glue Catalog'],
+  ['05','Spark (Scala)','Type-safe transforms on Databricks'],
+  ['06','Warehouse','Snowflake ↔ BigQuery, auto-switch after trial'],
+  ['07','dbt','Marts — drug_master_profile joins everything'],
+  ['08','LightGBM + MLflow','4 classifiers, AUC-gated promotion'],
+  ['09','ChromaDB + RAG','PubMed vectors + LangChain/Groq agent'],
+  ['10','FastAPI + Pages','Serving API + this self-updating dashboard'],
+];
+function renderStages() {
+  document.getElementById('stages').innerHTML = STAGES.map(([n,t,d]) =>
+    `<div class="stage"><div class="n">STAGE ${n}</div><div class="t">${t}</div><div class="d">${d}</div></div>`).join('');
+}
+
+const TECH = ['Terraform','AWS S3','Glue Catalog','Snowflake','BigQuery','Confluent Kafka','Airflow',
+  'Apache Iceberg','Great Expectations','Spark / Scala','Databricks','dbt','LightGBM','MLflow','SHAP',
+  'ChromaDB','LangChain','Groq / Llama 3','FastAPI','Gradio','GitHub Actions'];
+function renderTech() {
+  document.getElementById('tech').innerHTML = TECH.map(t => `<span class="p">${t}</span>`).join('');
+}
+
+function renderInsights() {
+  const p = DATA.profiles, s = DATA.stats;
+  const worst = p[0];
+  const topReact = DATA.reaction_leaderboard[0];
+  const bestModel = [...DATA.model_metrics].sort((a,b)=>b.auc-a.auc)[0];
+  const cards = [
+    ['a','Highest serious risk', worst.drug_name + ' · ' + worst.serious_reaction_pct.toFixed(0) + '%',
+      'Leads the cohort for model-scored serious-reaction risk, driven by ' + worst.top_risk_factor.replace(/_/g,' ') + '.'],
+    ['b','Most-reported reaction', topReact.reaction,
+      'The single most frequently reported adverse reaction aggregated across all ' + s.drugs + ' tracked drugs.'],
+    ['c','Best-performing model', bestModel.model + ' · AUC ' + bestModel.auc.toFixed(3),
+      'The ' + bestModel.model.toLowerCase() + ' classifier separates outcomes best; all four average ' + s.avg_auc.toFixed(3) + ' AUC.'],
+  ];
+  document.getElementById('insights').innerHTML = cards.map(([c,k,h,pt]) =>
+    `<div class="insight ${c}"><div class="k">${k}</div><div class="h">${h}</div><div class="p">${pt}</div></div>`).join('');
+}
+
+function renderRuns() {
+  document.getElementById('runlog').innerHTML = DATA.pipeline_runs.map(r => {
+    const cls = r.status === 'ok' ? 'ok' : (r.status === 'error' ? 'err' : 'run');
+    const label = r.status === 'ok' ? '● ok' : (r.status === 'error' ? '● failed' : '● running');
+    const mods = r.stages.map(m => `<span class="modpill">${m}</span>`).join('');
+    return `<div class="runrow"><div>${r.date}</div><div class="${cls}">${label}</div>
+      <div class="hide-sm">${Math.floor(r.duration_s/60)}m ${r.duration_s%60}s</div>
+      <div class="hide-sm">${r.rows.toLocaleString()}</div><div class="modpills">${mods}</div></div>`;
+  }).join('');
+}
+
+/* ---------- CHARTS ---------- */
+function chartRank() {
+  const p = [...DATA.profiles].sort((a,b)=>a.serious_reaction_pct-b.serious_reaction_pct);
+  Plotly.newPlot('chart-rank', [{
+    type:'bar', orientation:'h',
+    y:p.map(d=>d.drug_name), x:p.map(d=>d.serious_reaction_pct),
+    marker:{ color:p.map(d=>RISK[d.risk_label]||C.accent) },
+    text:p.map(d=>d.serious_reaction_pct.toFixed(1)+'%'), textposition:'auto',
+    insidetextfont:{ color:'#04110d', family:FONT }, cliponaxis:false,
+    hovertemplate:'%{y}: %{x:.1f}% serious<extra></extra>'
+  }], layout({ xaxis:{ gridcolor:C.border, zerolinecolor:C.border2, ticksuffix:'%', range:[0,100] } }), CFG);
+  document.getElementById('chart-rank').on('plotly_click', e => selectDrug(e.points[0].y));
+}
+
+function chartMatrix() {
+  const drugs = DATA.profiles.map(d=>d.drug_name);
+  const cols = [['serious_reaction_pct','Serious'],['hospitalization_pct','Hospital'],['death_pct','Death'],['disability_pct','Disability']];
+  const raw = cols.map(([k]) => DATA.profiles.map(d=>d[k]));       // [outcome][drug]
+  // normalize per outcome column for colour; keep raw % as text
+  const z = drugs.map((_,di)=> cols.map((_,ci)=>{
+    const arr = raw[ci]; const mn=Math.min(...arr), mx=Math.max(...arr);
+    return mx===mn ? 0.5 : (raw[ci][di]-mn)/(mx-mn);
+  }));
+  const text = drugs.map((_,di)=> cols.map((_,ci)=> raw[ci][di].toFixed(1)+'%'));
+  Plotly.newPlot('chart-matrix', [{
+    type:'heatmap', x:cols.map(c=>c[1]), y:drugs, z:z,
+    text:text, texttemplate:'%{text}', textfont:{ size:11, color:C.text, family:FONT },
+    colorscale:[[0,'#123833'],[0.4,'#1f8f7d'],[0.7,'#d6a020'],[1,'#f85149']], showscale:false,
+    xgap:3, ygap:3, hovertemplate:'%{y} · %{x}: %{text}<extra></extra>'
+  }], layout({ margin:{l:96,r:12,t:8,b:34}, yaxis:{ automargin:true } }), CFG);
+}
+
+function chartShap(d) {
+  const s = [...d.shap_values].sort((a,b)=>Math.abs(a.contribution)-Math.abs(b.contribution)).slice(-8);
+  Plotly.newPlot('chart-shap', [{
+    type:'bar', orientation:'h',
+    y:s.map(x=>x.feature.replace(/_/g,' ')), x:s.map(x=>x.contribution),
+    marker:{ color:s.map(x=>x.contribution>=0?C.high:C.accent) },
+    hovertemplate:'%{y}: %{x:.3f}<extra></extra>'
+  }], layout({ margin:{l:150,r:14,t:6,b:34}, xaxis:{ gridcolor:C.border, zerolinecolor:C.border2,
+    title:{ text:'← lowers   ·   raises →', font:{ size:10, color:C.muted } } } }), CFG);
+}
+
+function chartAge(d) {
+  const buckets = Object.keys(d.age_distribution);
+  Plotly.newPlot('chart-age', [{
+    type:'bar', x:buckets, y:buckets.map(b=>d.age_distribution[b]),
+    marker:{ color:C.accent2 }, text:buckets.map(b=>d.age_distribution[b].toFixed(0)+'%'),
+    textposition:'auto', insidetextfont:{ color:'#04110d', family:FONT },
+    hovertemplate:'%{x}: %{y:.1f}% of reports<extra></extra>'
+  }], layout({ margin:{l:44,r:14,t:6,b:34}, yaxis:{ gridcolor:C.border, ticksuffix:'%' } }), CFG);
+}
+
+function chartReactDrug(d) {
+  const r = [...d.top_5_reactions].sort((a,b)=>a.frequency_pct-b.frequency_pct);
+  Plotly.newPlot('chart-react-drug', [{
+    type:'bar', orientation:'h', y:r.map(x=>x.reaction), x:r.map(x=>x.frequency_pct),
+    marker:{ color:C.accent }, text:r.map(x=>x.frequency_pct.toFixed(1)+'%'),
+    textposition:'auto', insidetextfont:{ color:'#04110d', family:FONT }, cliponaxis:false,
+    hovertemplate:'%{y}: %{x:.1f}%<extra></extra>'
+  }], layout({ margin:{l:96,r:14,t:6,b:34}, xaxis:{ gridcolor:C.border, ticksuffix:'%' } }), CFG);
+}
+
+function chartScatter() {
+  const rc = DATA.research_community;
+  Plotly.newPlot('chart-scatter', [{
+    type:'scatter', mode:'markers+text',
+    x:rc.map(d=>d.research), y:rc.map(d=>d.community),
+    text:rc.map(d=>d.drug), textposition:'top center', textfont:{ size:10, color:C.muted, family:FONT },
+    marker:{ size:rc.map(d=>10+d.serious/3), color:rc.map(d=>RISK[d.risk_label]||C.accent),
+      line:{ color:C.bg, width:1.5 }, opacity:.9 },
+    hovertemplate:'%{text}<br>research %{x:.0f}% · community %{y:.0f}<extra></extra>'
+  }], layout({ margin:{l:52,r:16,t:8,b:44},
+    xaxis:{ gridcolor:C.border, zerolinecolor:C.border2, title:{ text:'Research risk consensus (%)', font:{size:11,color:C.muted} } },
+    yaxis:{ gridcolor:C.border, zerolinecolor:C.border2, title:{ text:'Community concern', font:{size:11,color:C.muted} } } }), CFG);
+}
+
+function chartReactions() {
+  const r = [...DATA.reaction_leaderboard].sort((a,b)=>a.score-b.score);
+  Plotly.newPlot('chart-reactions', [{
+    type:'bar', orientation:'h', y:r.map(x=>x.reaction), x:r.map(x=>x.score),
+    marker:{ color:C.accent2 }, hovertemplate:'%{y}: %{x:.0f} pooled score<extra></extra>'
+  }], layout({ margin:{l:100,r:14,t:6,b:34}, xaxis:{ gridcolor:C.border } }), CFG);
+}
+
+function chartAuc() {
+  const m = DATA.model_metrics;
+  Plotly.newPlot('chart-auc', [{
+    type:'bar', x:m.map(d=>d.model), y:m.map(d=>d.auc),
+    marker:{ color:[C.high,C.medium,C.accent,C.accent2] },
+    text:m.map(d=>d.auc.toFixed(3)), textposition:'auto', insidetextfont:{ color:'#04110d', family:FONT },
+    hovertemplate:'%{x}: AUC %{y:.3f}<extra></extra>'
+  }], layout({ margin:{l:46,r:14,t:8,b:40}, yaxis:{ gridcolor:C.border, range:[0.5,1] } }), CFG);
+}
+
+function chartImportance() {
+  const f = [...DATA.feature_importance].sort((a,b)=>a.importance-b.importance);
+  Plotly.newPlot('chart-importance', [{
+    type:'bar', orientation:'h', y:f.map(x=>x.feature), x:f.map(x=>x.importance),
+    marker:{ color:C.accent }, hovertemplate:'%{y}: %{x:.3f}<extra></extra>'
+  }], layout({ margin:{l:150,r:14,t:6,b:34}, xaxis:{ gridcolor:C.border } }), CFG);
+}
+
+/* ---------- EXPLORER ---------- */
+function selectDrug(name) {
   const d = DATA.profiles.find(p => p.drug_name === name);
   if (!d) return;
   current = d;
-  document.getElementById("drugSelect").value = name;
-  document.getElementById("detailName").textContent = d.drug_name;
-  document.getElementById("chatDrug").textContent = d.drug_name;
+  document.getElementById('drugSelect').value = name;
+  document.getElementById('detailName').textContent = d.drug_name;
+  document.getElementById('chatDrug').textContent = d.drug_name;
 
-  const pill = document.getElementById("riskPill");
-  pill.innerHTML = '<span class="dot" style="background:' + V(STATUS[d.risk_label] || "--muted") + '"></span>' + d.risk_label + " RISK";
+  const rc = RISK[d.risk_label] || C.muted;
+  document.getElementById('riskPill').innerHTML =
+    `<span class="dot" style="background:${rc}"></span>${d.risk_label} RISK`;
+  document.getElementById('riskPill').style.cssText =
+    `color:${rc};background:${rc}18;border:1px solid ${rc}44;`;
+  document.getElementById('warnTag').textContent = 'Label warning: ' + d.label_warning_severity;
 
-  document.getElementById("warnTag").textContent = "Label warning: " + d.label_warning_severity;
-  document.getElementById("tSerious").textContent = d.serious_reaction_pct.toFixed(1) + "%";
-  document.getElementById("tHosp").textContent = d.hospitalization_pct.toFixed(1) + "%";
-  document.getElementById("tDeath").textContent = d.death_pct.toFixed(1) + "%";
-  document.getElementById("tDisab").textContent = d.disability_pct.toFixed(1) + "%";
-  document.getElementById("kConcern").textContent = d.community_concern_score.toFixed(1);
-  document.getElementById("kConsensus").textContent = d.research_risk_consensus.toFixed(1) + "%";
-  document.getElementById("kPapers").textContent = d.total_research_papers;
-  document.getElementById("kDep").textContent = d.dependency_mention_rate.toFixed(1) + "%";
-  document.getElementById("kWd").textContent = d.withdrawal_mention_rate.toFixed(1) + "%";
-  document.getElementById("kTop").textContent = d.top_risk_factor;
+  const rk = d.risk_label==='HIGH'?'risk-hi':(d.risk_label==='MEDIUM'?'risk-md':'risk-lo');
+  const tiles = [
+    ['Serious', d.serious_reaction_pct], ['Hospitalization', d.hospitalization_pct],
+    ['Death', d.death_pct], ['Disability', d.disability_pct]
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(([l,v]) =>
+    `<div class="tile ${rk}"><div class="lbl">${l}</div><div class="val">${v.toFixed(1)}%</div></div>`).join('');
 
-  const tags = document.getElementById("interTags");
-  tags.innerHTML = "";
-  (d.known_interactions.length ? d.known_interactions : ["None reported"]).forEach(t => {
-    const el = document.createElement("span"); el.className = "tag"; el.textContent = t; tags.appendChild(el);
+  const kpis = [
+    ['Community concern', d.community_concern_score.toFixed(0)],
+    ['Research consensus', d.research_risk_consensus.toFixed(0)+'%'],
+    ['Research papers', d.total_research_papers],
+    ['Dependency', d.dependency_mention_rate.toFixed(0)+'%'],
+    ['Withdrawal', d.withdrawal_mention_rate.toFixed(0)+'%'],
+    ['Adverse reports', d.total_reports.toLocaleString()],
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(([l,v]) =>
+    `<div class="kpi"><div class="lbl">${l}</div><div class="val">${v}</div></div>`).join('');
+
+  const tags = document.getElementById('interTags');
+  tags.innerHTML = '';
+  (d.known_interactions.length ? d.known_interactions : ['None reported']).forEach(t => {
+    const el = document.createElement('span'); el.className='tag'; el.textContent=t; tags.appendChild(el);
   });
 
-  renderReactions(d);
-  renderShap(d);
+  chartShap(d); chartAge(d); chartReactDrug(d);
 }
 
-function renderTable() {
-  const body = document.getElementById("tableBody");
-  body.innerHTML = "";
-  DATA.profiles.forEach(d => {
-    const tr = document.createElement("tr");
-    const risk = '<span class="dot" style="background:' + V(STATUS[d.risk_label] || "--muted") + '"></span> ' + d.risk_label;
-    tr.innerHTML =
-      "<td>" + d.drug_name + "</td><td style='text-align:left'>" + risk + "</td>" +
-      "<td>" + d.serious_reaction_pct.toFixed(1) + "</td><td>" + d.hospitalization_pct.toFixed(1) + "</td>" +
-      "<td>" + d.death_pct.toFixed(1) + "</td><td>" + d.disability_pct.toFixed(1) + "</td>" +
-      "<td>" + d.community_concern_score.toFixed(1) + "</td><td>" + d.total_research_papers + "</td>";
-    body.appendChild(tr);
-  });
-}
-
-function renderAll() {
-  renderRank();
-  renderTable();
-  if (current) select(current.drug_name);
-}
-
-function setTheme(mode) {
-  document.documentElement.setAttribute("data-theme", mode);
-  try { localStorage.setItem("pw-theme", mode); } catch (e) {}
-  renderAll();
-}
-
-document.getElementById("themeBtn").addEventListener("click", () => {
-  const cur = document.documentElement.getAttribute("data-theme")
-    || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  setTheme(cur === "dark" ? "light" : "dark");
-});
-document.getElementById("drugSelect").addEventListener("change", (e) => select(e.target.value));
-
-// --- chat agent (talks to the live /ask API) ---
+/* ---------- CHAT ---------- */
 function getApiBase() {
-  try { const s = localStorage.getItem("pw-api"); if (s) return s; } catch (e) {}
-  const q = new URLSearchParams(location.search).get("api");
-  if (q) return q;
-  return (DATA && DATA.meta && DATA.meta.api_base_url) || "";
+  try { const s = localStorage.getItem('pw-api'); if (s) return s; } catch(e){}
+  const q = new URLSearchParams(location.search).get('api'); if (q) return q;
+  return (DATA && DATA.meta && DATA.meta.api_base_url) || '';
 }
-function trimSlash(u) { return (u || "").replace(/\/+$/, ""); }
+const trimSlash = u => (u||'').replace(/\/+$/,'');
 function setApiStatus() {
-  const base = getApiBase();
-  const el = document.getElementById("apiStatus");
-  if (base) {
-    el.textContent = "● connected: " + base;
-    el.className = "api-ok";
-    document.getElementById("apiInput").value = base;
-  } else {
-    el.textContent = "● backend not connected";
-    el.className = "api-off";
-  }
+  const base = getApiBase(); const el = document.getElementById('apiStatus');
+  if (base) { el.textContent='● connected: '+base; el.className='api-ok'; document.getElementById('apiInput').value=base; }
+  else { el.textContent='● backend not connected'; el.className='api-off'; }
 }
-function addMsg(text, cls) {
-  const log = document.getElementById("chatLog");
-  const d = document.createElement("div");
-  d.className = "msg " + cls;
-  d.textContent = text;
-  log.appendChild(d);
-  log.scrollTop = log.scrollHeight;
-  return d;
+function addMsg(t, cls) {
+  const log = document.getElementById('chatLog'); const d = document.createElement('div');
+  d.className='msg '+cls; d.textContent=t; log.appendChild(d); log.scrollTop=log.scrollHeight; return d;
 }
-document.getElementById("apiSave").addEventListener("click", () => {
-  const v = trimSlash(document.getElementById("apiInput").value.trim());
-  try { if (v) localStorage.setItem("pw-api", v); else localStorage.removeItem("pw-api"); } catch (e) {}
-  setApiStatus();
-  addMsg(v ? "API connected — ask away." : "API cleared.", "sys");
-});
 async function sendChat() {
-  const input = document.getElementById("chatInput");
-  const q = input.value.trim();
-  if (!q) return;
+  const input = document.getElementById('chatInput'); const q = input.value.trim(); if (!q) return;
   const base = getApiBase();
-  if (!base) { addMsg("Connect your live API first — paste its URL above.", "sys"); return; }
-  if (!current) { addMsg("Select a drug first.", "sys"); return; }
-  addMsg(q, "user");
-  input.value = "";
-  const thinking = addMsg("…thinking", "bot");
+  if (!base) { addMsg('Connect your live API first — paste its URL above.','sys'); return; }
+  if (!current) { addMsg('Select a drug first.','sys'); return; }
+  addMsg(q,'user'); input.value='';
+  const thinking = addMsg('…thinking','bot');
   try {
-    const resp = await fetch(trimSlash(base) + "/ask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const resp = await fetch(trimSlash(base)+'/ask', {
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        drug_name: current.drug_name,
-        age: parseInt(document.getElementById("chatAge").value, 10) || 30,
-        weight: 70,
-        question: q,
-        sex: document.getElementById("chatSex").value || null,
-        smoker: document.getElementById("chatSmoker").checked,
-        alcohol: document.getElementById("chatAlcohol").value || "none",
-        concurrent_meds: 0,
-        pregnant: false,
-      }),
+        drug_name: current.drug_name, age: parseInt(document.getElementById('chatAge').value,10)||30, weight:70, question:q,
+        sex: document.getElementById('chatSex').value||null, smoker: document.getElementById('chatSmoker').checked,
+        alcohol: document.getElementById('chatAlcohol').value||'none', concurrent_meds:0, pregnant:false })
     });
     thinking.remove();
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => null);
-      addMsg("API error " + resp.status + (err && err.detail ? ": " + err.detail : ""), "sys");
-      return;
-    }
-    const data = await resp.json();
-    addMsg(data.answer || "(no answer)", "bot");
-  } catch (err) {
-    thinking.remove();
-    addMsg("Couldn't reach the API. Is it deployed and the URL correct? (" + err + ")", "sys");
-  }
+    if (!resp.ok) { const e = await resp.json().catch(()=>null); addMsg('API error '+resp.status+(e&&e.detail?': '+e.detail:''),'sys'); return; }
+    const data = await resp.json(); addMsg(data.answer||'(no answer)','bot');
+  } catch(err) { thinking.remove(); addMsg("Couldn't reach the API. Is it deployed and the URL correct? ("+err+')','sys'); }
 }
-document.getElementById("chatSend").addEventListener("click", sendChat);
-document.getElementById("chatInput").addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat(); });
 
-fetch("data/dashboard.json")
-  .then(r => r.json())
-  .then(d => {
-    DATA = d;
-    const m = d.meta;
-    document.getElementById("modeBadge").textContent =
-      (m.mode === "live" ? "live data" : "sample data") + " · " + m.generated_at.slice(0, 10);
-    const sel = document.getElementById("drugSelect");
-    d.profiles.forEach(p => {
-      const o = document.createElement("option"); o.value = p.drug_name; o.textContent = p.drug_name; sel.appendChild(o);
-    });
-    document.getElementById("footer").innerHTML =
-      m.disclaimer + '<br>PharmaWatch · <a href="https://github.com/oscar-melendez77/PharmaWatch">source on GitHub</a>';
-    current = d.profiles[0];
-    try {
-      const saved = localStorage.getItem("pw-theme");
-      if (saved) document.documentElement.setAttribute("data-theme", saved);
-    } catch (e) {}
-    renderAll();
-    setApiStatus();
-    addMsg(
-      getApiBase()
-        ? "Hi — ask me anything about " + current.drug_name + ". I use FAERS, PubMed, Reddit, and FDA labels."
-        : "Paste your live API URL above to start chatting about " + current.drug_name + ".",
-      "sys"
-    );
-  })
-  .catch(err => {
-    document.getElementById("modeBadge").textContent = "data unavailable";
-    console.error(err);
-  });
+/* ---------- BOOT ---------- */
+function renderAll() {
+  renderStatbar(); renderSources(); renderStages(); renderTech(); renderInsights(); renderRuns();
+  chartRank(); chartMatrix(); chartScatter(); chartReactions(); chartAuc(); chartImportance();
+  if (current) selectDrug(current.drug_name);
+}
+
+document.getElementById('drugSelect').addEventListener('change', e => selectDrug(e.target.value));
+document.getElementById('apiSave').addEventListener('click', () => {
+  const v = trimSlash(document.getElementById('apiInput').value.trim());
+  try { if (v) localStorage.setItem('pw-api', v); else localStorage.removeItem('pw-api'); } catch(e){}
+  setApiStatus(); addMsg(v ? 'API connected — ask away.' : 'API cleared.','sys');
+});
+document.getElementById('chatSend').addEventListener('click', sendChat);
+document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key==='Enter') sendChat(); });
+
+fetch('data/dashboard.json').then(r=>r.json()).then(d => {
+  DATA = d; const m = d.meta;
+  document.getElementById('dataFlag').innerHTML =
+    (m.mode==='live'?'<b>● live data</b>':'<b>● sample data</b>') + ' · generated ' + m.generated_at.slice(0,10) +
+    ' · ' + d.stats.drugs + ' drugs · ' + d.stats.data_sources + ' sources';
+
+  const sel = document.getElementById('drugSelect');
+  d.profiles.forEach(p => { const o=document.createElement('option'); o.value=p.drug_name; o.textContent=p.drug_name; sel.appendChild(o); });
+  document.getElementById('heroChips').innerHTML =
+    d.profiles.slice(0,6).map(p=>`<span class="chip" data-d="${p.drug_name}">${p.drug_name}</span>`).join('');
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    selectDrug(c.dataset.d); document.getElementById('explorer').scrollIntoView({behavior:'smooth'});
+  }));
+
+  document.getElementById('footer').innerHTML =
+    m.disclaimer + '<br>PharmaWatch · <a href="https://github.com/oscar-melendez77/PharmaWatch">source on GitHub</a>';
+  document.getElementById('devbar').innerHTML =
+    '<span class="nm">Oscar Melendez</span><span class="sep">/</span>' +
+    '<a href="https://github.com/oscar-melendez77/PharmaWatch">github.com/oscar-melendez77</a>' +
+    '<span class="sep">/</span><span>Data Engineering · ML · GenAI</span>';
+
+  current = d.profiles[0];
+  renderAll(); setApiStatus();
+  addMsg(getApiBase() ? 'Hi — ask me anything about '+current.drug_name+'. I use FAERS, PubMed, Reddit & FDA labels.'
+    : 'Paste your live API URL above to start chatting about '+current.drug_name+'.', 'sys');
+}).catch(err => { document.getElementById('dataFlag').textContent='data unavailable'; console.error(err); });
 </script>
 </body>
 </html>
