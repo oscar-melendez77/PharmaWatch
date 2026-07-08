@@ -22,7 +22,7 @@ from tools import (
     label_info_text,
 )
 
-GROQ_MODEL = "llama3-8b-8192"
+GROQ_MODEL = "llama-3.1-8b-instant"
 
 SYSTEM_PROMPT = (
     "You are PharmaWatch, a drug safety intelligence assistant. You can pull from "

@@ -391,7 +391,11 @@ async function sendChat() {
       }),
     });
     thinking.remove();
-    if (!resp.ok) { addMsg("API returned " + resp.status + ".", "sys"); return; }
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => null);
+      addMsg("API error " + resp.status + (err && err.detail ? ": " + err.detail : ""), "sys");
+      return;
+    }
     const data = await resp.json();
     addMsg(data.answer || "(no answer)", "bot");
   } catch (err) {

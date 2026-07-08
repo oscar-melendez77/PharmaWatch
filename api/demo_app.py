@@ -28,7 +28,7 @@ from models import PredictRequest, AskRequest
 from personalize import build_factors, personalize
 
 DASHBOARD = Path(__file__).resolve().parent.parent / "docs" / "data" / "dashboard.json"
-GROQ_MODEL = "llama3-8b-8192"
+GROQ_MODEL = "llama-3.1-8b-instant"
 
 SYSTEM_PROMPT = (
     "You are PharmaWatch, a drug safety intelligence assistant. Answer using ONLY "
