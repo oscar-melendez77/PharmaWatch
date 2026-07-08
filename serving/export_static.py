@@ -57,6 +57,18 @@ REACTIONS = [
     "Nausea", "Headache", "Dizziness", "Insomnia", "Tachycardia",
     "Anxiety", "Vomiting", "Somnolence", "Fatigue", "Tremor",
 ]
+# signature adverse reactions so the sample data stays clinically plausible
+# (a domain reader should recognise each drug's real hallmark effects)
+SIGNATURE = {
+    "Fentanyl": ["Respiratory depression", "Sedation"],
+    "Oxycodone": ["Respiratory depression", "Constipation"],
+    "Xanax": ["Drowsiness", "Dependence"],
+    "Adderall": ["Insomnia", "Tachycardia"],
+    "Warfarin": ["Bleeding", "Bruising"],
+    "Lisinopril": ["Dry cough", "Dizziness"],
+    "Metformin": ["Nausea", "Diarrhea"],
+    "Ibuprofen": ["GI irritation", "Heartburn"],
+}
 INTERACTIONS = [
     "MAO inhibitors", "SSRIs", "Warfarin", "Alcohol",
     "Benzodiazepines", "NSAIDs", "Beta blockers",
@@ -86,16 +98,21 @@ def _sample_profile(drug):
     death = round(max(0.2, serious * rng.uniform(0.03, 0.15)), 1)
     disability = round(max(0.5, serious * rng.uniform(0.1, 0.3)), 1)
 
-    reactions_pool = rng.sample(REACTIONS, 5)
-    freqs = sorted((rng.uniform(5, 30) for _ in range(5)), reverse=True)
-    top_5 = [{"reaction": r, "frequency_pct": round(f, 1)} for r, f in zip(reactions_pool, freqs)]
+    # signature reactions first (higher frequency), then fill to 5 uniquely
+    pool = list(dict.fromkeys(SIGNATURE.get(name, []) + rng.sample(REACTIONS, 5)))[:5]
+    freqs = sorted((rng.uniform(5, 30) for _ in range(len(pool))), reverse=True)
+    top_5 = [{"reaction": r, "frequency_pct": round(f, 1)} for r, f in zip(pool, freqs)]
 
     shap = [{"feature": f, "contribution": round(rng.uniform(-1.0, 1.0) * bias, 3)} for f in FEATURE_COLUMNS]
     shap.sort(key=lambda d: abs(d["contribution"]), reverse=True)
 
-    warning_sev = rng.choice(
-        ["LOW", "MEDIUM", "HIGH", "HIGH"] if bias > 0.5 else ["LOW", "LOW", "MEDIUM"]
-    )
+    # warning severity should track how dangerous the drug is, not be random
+    if bias > 0.6:
+        warning_sev = "HIGH"
+    elif bias > 0.4:
+        warning_sev = rng.choice(["MEDIUM", "HIGH"])
+    else:
+        warning_sev = rng.choice(["LOW", "MEDIUM"])
 
     # age distribution of adverse reports (weights shift with drug)
     raw = [rng.uniform(0.4, 1.0) for _ in AGE_BUCKETS]
@@ -215,13 +232,13 @@ def _research_community(profiles):
 
 def _source_stats(profiles):
     return [
-        {"source": "FDA FAERS", "icon": "\U0001FA79", "records": sum(p.get("total_reports", 0) for p in profiles),
+        {"source": "FDA FAERS", "code": "FAERS", "records": sum(p.get("total_reports", 0) for p in profiles),
          "unit": "adverse-event reports", "note": "Serious reaction, hospitalization, death & disability signals"},
-        {"source": "PubMed", "icon": "\U0001F4C4", "records": sum(p.get("total_research_papers", 0) for p in profiles),
+        {"source": "PubMed", "code": "PUBMED", "records": sum(p.get("total_research_papers", 0) for p in profiles),
          "unit": "research abstracts", "note": "Semantic index powering the research digest + RAG agent"},
-        {"source": "OpenFDA Labels", "icon": "\U0001F3F7️", "records": len(profiles),
+        {"source": "OpenFDA Labels", "code": "OPENFDA", "records": len(profiles),
          "unit": "structured drug labels", "note": "Boxed warnings, interactions & warning severity"},
-        {"source": "Reddit", "icon": "\U0001F4AC", "records": sum(int(p.get("community_concern_score", 0) * 40) for p in profiles),
+        {"source": "Reddit", "code": "REDDIT", "records": sum(int(p.get("community_concern_score", 0) * 40) for p in profiles),
          "unit": "community posts", "note": "Dependency, withdrawal & real-world concern signal"},
     ]
 
@@ -265,8 +282,9 @@ def main():
             "drug_count": len(profiles),
             "api_base_url": os.environ.get("API_BASE_URL", ""),
             "disclaimer": (
-                "Educational demo. Risk scores are model estimates, not medical advice. "
-                "Sample data is synthetic when not connected to the live API."
+                "Educational demo — model estimates, not medical advice. When not "
+                "connected to the live API, all figures shown are synthetic sample "
+                "data, not real FAERS / PubMed / Reddit output."
             ),
         },
         "stats": stats,

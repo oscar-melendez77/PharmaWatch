@@ -11,7 +11,7 @@
 <style>
   :root{
     --desk:#e7e1d2; --paper:#faf8f1; --sheet-edge:#efeadb;
-    --ink:#1c1a15; --ink-2:#57524a; --faint:#8b8676;
+    --ink:#1c1a15; --ink-2:#57524a; --faint:#6f6a5c;
     --rule:#d3ccba; --ledger:#e9e3d1;
     --red:#b5372b; --red-deep:#8f2a20; --ochre:#a9781f; --green:#4e6b46; --slate:#3f5d7a;
     --mono:'IBM Plex Mono',ui-monospace,monospace;
@@ -19,7 +19,7 @@
     --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
+  html{scroll-behavior:smooth;scroll-padding-top:52px}
   body{
     background:var(--desk);
     background-image:linear-gradient(var(--ledger) 1px,transparent 1px);
@@ -39,7 +39,10 @@
   @media(max-width:680px){ .pad{padding:26px 22px} body{padding:0 8px} }
 
   /* MASTHEAD */
-  .masthead{position:relative;overflow:hidden}
+  .masthead{position:relative;overflow:visible}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .table-wrap .ledger{min-width:520px}
+  .src-mark{color:var(--red);font-weight:600;margin-right:7px}
   .mast-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
   .brand{font-family:var(--mono);font-weight:600;font-size:.82rem;letter-spacing:.34em;text-transform:uppercase}
   .brand .sq{display:inline-block;width:9px;height:9px;background:var(--red);margin-right:10px;vertical-align:middle}
@@ -51,20 +54,23 @@
   .meta-line{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;color:var(--ink-2);
     display:flex;gap:6px 20px;flex-wrap:wrap;text-transform:uppercase}
   .meta-line b{color:var(--ink);font-weight:600}
-  .stamp{position:absolute;top:26px;right:44px;transform:rotate(-9deg);border:2.5px solid var(--red);
+  .stamp{position:absolute;top:104px;right:40px;transform:rotate(-9deg);border:2.5px solid var(--red);
     color:var(--red);font-family:var(--mono);font-weight:600;font-size:.62rem;letter-spacing:.14em;
     text-transform:uppercase;padding:7px 12px;line-height:1.25;text-align:center;opacity:.72;border-radius:2px;
     box-shadow:0 0 0 2px rgba(250,248,241,.6) inset}
   @media(max-width:680px){ .stamp{position:static;display:inline-block;transform:rotate(-4deg);margin-top:16px} }
 
   /* NAV STRIP */
-  .indexbar{position:sticky;top:0;z-index:50;background:rgba(250,248,241,.94);backdrop-filter:blur(6px);
+  .indexbar{position:sticky;top:0;z-index:50;background:var(--paper);
     border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);
     display:flex;gap:0;overflow-x:auto;scrollbar-width:none}
   .indexbar::-webkit-scrollbar{display:none}
   .indexbar a{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
     color:var(--ink-2);padding:9px 15px;white-space:nowrap;border:0;border-right:1px solid var(--rule)}
+  .indexbar a:first-child{padding-left:52px}
+  .indexbar a:last-child{border-right:0}
   .indexbar a:hover{background:var(--ink);color:var(--paper)}
+  @media(max-width:680px){ .indexbar a:first-child{padding-left:22px} }
 
   /* SECTIONS */
   section{padding:44px 0;border-top:1px solid var(--rule)}
@@ -74,7 +80,8 @@
   .sec-title{font-family:var(--serif);font-weight:600;font-size:1.55rem;letter-spacing:-.01em}
   .sec-note{font-family:var(--sans);color:var(--ink-2);font-size:.95rem;max-width:640px;margin-bottom:26px;line-height:1.7}
   .abstract{font-family:var(--serif);font-size:1.16rem;line-height:1.75;max-width:720px;color:var(--ink)}
-  .abstract .drop{float:left;font-weight:900;font-size:3.3rem;line-height:.72;margin:6px 12px 0 0;color:var(--red);font-family:var(--serif)}
+  .abstract .drop{font-family:var(--serif);font-weight:900;color:var(--red);margin-right:10px;
+    -webkit-initial-letter:2;initial-letter:2}
   .narrative p{color:var(--ink-2);font-size:1rem;line-height:1.8;margin-top:14px;max-width:720px}
   .narrative p strong{color:var(--ink);font-weight:600}
 
@@ -83,8 +90,8 @@
   .keyfig td{border-bottom:1px solid var(--rule);padding:11px 6px;vertical-align:baseline}
   .keyfig .kf-v{font-size:1.7rem;font-weight:600;color:var(--ink);letter-spacing:-.01em;width:1%;white-space:nowrap;padding-right:18px;font-variant-numeric:tabular-nums}
   .keyfig .kf-v.red{color:var(--red)}
-  .keyfig .kf-l{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
-  .keyfig .kf-d{font-family:var(--sans);font-size:.82rem;color:var(--faint);text-align:right}
+  .keyfig .kf-l{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .keyfig .kf-d{font-family:var(--sans);font-size:.84rem;color:var(--faint);margin-top:2px}
 
   /* SOURCE / LEDGER TABLE */
   .ledger{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.82rem}
@@ -95,7 +102,7 @@
   .ledger tr:hover td{background:rgba(28,26,21,.025)}
   .ledger .src-n{font-weight:600;color:var(--ink)}
   .ledger .src-role{font-family:var(--sans);color:var(--ink-2);font-size:.82rem;margin-top:2px}
-  .ledger .tick{color:var(--green)} .ledger .fail{color:var(--red)} .ledger .run{color:var(--ochre)}
+  .ledger .tick{color:var(--ink)} .ledger .fail{color:var(--red);font-weight:600} .ledger .run{color:var(--ochre);font-weight:600}
 
   /* FIGURES (graph paper) */
   .figs{display:grid;grid-template-columns:1fr 1fr;gap:26px}
@@ -111,7 +118,8 @@
 
   /* DRUG FACTS MONOGRAPH */
   .mono-wrap{display:grid;grid-template-columns:360px 1fr;gap:26px;align-items:start}
-  @media(max-width:820px){ .mono-wrap{grid-template-columns:1fr} }
+  @media(max-width:960px){ .mono-wrap{grid-template-columns:1fr} .mono-wrap .figs{grid-template-columns:1fr 1fr} }
+  @media(max-width:560px){ .mono-wrap .figs{grid-template-columns:1fr} }
   .specimen{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:10px}
   select,input[type=text],input[type=number]{font-family:var(--mono);font-size:.82rem;background:var(--paper);
     color:var(--ink);border:1px solid var(--ink);border-radius:0;padding:8px 10px}
@@ -154,12 +162,16 @@
   .api-off{font-family:var(--mono);font-size:.74rem;color:var(--faint)}
   .chat-profile{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:14px;font-family:var(--mono);font-size:.76rem;color:var(--ink-2)}
   .chat-profile label{display:flex;gap:6px;align-items:center}
-  .chat-log{height:290px;overflow-y:auto;border:2px solid var(--ink);background:var(--paper);
-    padding:14px;display:flex;flex-direction:column;gap:10px}
-  .msg{max-width:88%;padding:9px 13px;font-size:.9rem;white-space:pre-wrap;line-height:1.55;font-family:var(--sans)}
-  .msg.user{align-self:flex-end;background:var(--ink);color:var(--paper)}
-  .msg.bot{align-self:flex-start;border:1px solid var(--ink);background:var(--paper);color:var(--ink)}
-  .msg.sys{align-self:center;color:var(--faint);font-family:var(--mono);font-size:.74rem;text-align:center}
+  .chat-log{height:300px;overflow-y:auto;border:2px solid var(--ink);background:var(--paper);
+    padding:4px 16px;display:flex;flex-direction:column}
+  .msg{max-width:100%;padding:12px 0;font-size:.92rem;white-space:pre-wrap;line-height:1.62;
+    font-family:var(--sans);border-bottom:1px solid var(--rule)}
+  .msg:last-child{border-bottom:0}
+  .msg .mtag{display:block;font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--red);margin-bottom:5px}
+  .msg.bot{color:var(--ink)} .msg.bot .mtag{color:var(--ink-2)}
+  .msg.bot .mbody{font-family:var(--serif);font-size:.98rem}
+  .msg.sys{color:var(--faint);font-family:var(--mono);font-size:.74rem;text-align:center;border-bottom:0;padding:9px 0}
   .chat-input-row{display:flex;gap:8px;margin-top:12px}
   .chat-input-row input{flex:1}
   .btn{font-family:var(--mono);font-size:.78rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
@@ -187,7 +199,7 @@
       <div class="docno">DOSSIER No. PW-2026-08<br>DRUG SAFETY INTELLIGENCE</div>
     </div>
     <h1 class="mast-title">Drug Safety<br>Dossier</h1>
-    <div class="mast-sub">Adverse-event risk · research · sentiment — synthesised per drug</div>
+    <div class="mast-sub">Adverse-event risk · research · sentiment — aggregated per drug</div>
     <div class="stamp" id="stamp">Not Medical<br>Advice</div>
     <hr class="rule-double" />
     <div class="meta-line" id="metaLine">loading record…</div>
@@ -215,14 +227,15 @@
       medication's real-world risk — the FDA's adverse-event reports, the peer-reviewed literature,
       the official label, and what patients actually say — into a single per-drug safety record. Four
       gradient-boosted models score serious reactions, hospitalization, death and disability; a
-      transparent pass adjusts them to the reader's own profile; and a grounded agent answers the
-      follow-up questions. Every figure below is produced by one reproducible pipeline.</p>
+      grounded agent then re-weights them for the reader's profile — age, sex, alcohol, smoking —
+      before answering follow-up questions. Every figure is produced by one reproducible pipeline;
+      the public demo below runs on illustrative sample data.</p>
   </section>
 
   <!-- COHORT / KEY FIGURES -->
   <section id="overview">
-    <div class="sec-head"><span class="sec-no">§01</span><span class="sec-title">Cohort Overview</span></div>
-    <p class="sec-note">Key figures for the tracked specimen set. Counts reflect the current pipeline run.</p>
+    <div class="sec-head"><span class="sec-no">§01</span><span class="sec-title">Drug Set Overview</span></div>
+    <p class="sec-note">Key figures for the tracked drug set. Counts reflect the current pipeline run.</p>
     <table class="keyfig"><tbody id="keyfig"></tbody></table>
     <div class="chips" id="heroChips"></div>
   </section>
@@ -241,22 +254,24 @@
   <!-- RISK REGISTER -->
   <section id="risk">
     <div class="sec-head"><span class="sec-no">§03</span><span class="sec-title">Risk Register</span></div>
-    <p class="sec-note">Model-scored serious-reaction risk across the cohort, and the full outcome
-      matrix — normalised per column so every outcome is comparable at a glance.</p>
+    <p class="sec-note">Model-scored serious-reaction risk across the drug set, and the full outcome
+      matrix — each outcome column scaled 0–1, so you can rank drugs within an outcome at a glance.</p>
     <div class="figs">
       <div><div class="figure"><div id="chart-rank" class="chart"></div></div>
-        <div class="figcap"><b>Fig. 1</b> — Serious-reaction risk by drug (click a bar to open its monograph)</div></div>
+        <div class="figcap"><b>Fig. 1</b> — Serious-reaction risk by drug · click a bar to open its monograph
+        <span style="float:right;letter-spacing:0"><span style="color:var(--red)">■</span> HIGH&nbsp;
+        <span style="color:var(--ochre)">■</span> MED&nbsp; <span style="color:var(--green)">■</span> LOW</span></div></div>
       <div><div class="figure"><div id="chart-matrix" class="chart"></div></div>
-        <div class="figcap"><b>Fig. 2</b> — Outcome × drug risk matrix, column-normalised</div></div>
+        <div class="figcap"><b>Fig. 2</b> — Outcome × drug matrix · colour = rank within each column</div></div>
     </div>
   </section>
 
   <!-- MONOGRAPH / EXPLORER -->
   <section id="monograph">
     <div class="sec-head"><span class="sec-no">§04</span><span class="sec-title">Drug Monograph</span></div>
-    <p class="sec-note">Select a specimen for its full record: the four risk readouts, the factors
+    <p class="sec-note">Select a drug for its full record: the four risk readouts, the factors
       driving them (SHAP), who is affected, and the reactions reported.</p>
-    <div class="specimen">Specimen &nbsp;
+    <div class="specimen">Drug &nbsp;
       <select id="drugSelect" aria-label="Select drug"></select></div>
     <div class="mono-wrap">
       <div>
@@ -315,7 +330,7 @@
   <section id="provenance">
     <div class="sec-head"><span class="sec-no">§07</span><span class="sec-title">Provenance</span></div>
     <p class="sec-note">A ten-stage lakehouse pipeline, re-run daily by GitHub Actions, which commits
-      this record back to itself. The architecture, then the recent run ledger.</p>
+      the refreshed record back to the repo. The architecture, then the recent run ledger.</p>
     <div class="spec" id="spec"></div>
     <h3 style="font-family:var(--mono);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);margin:26px 0 8px">Recent pipeline runs</h3>
     <div class="table-wrap"><table class="ledger">
@@ -328,7 +343,7 @@
   <section id="inquiry" class="consult">
     <div class="sec-head"><span class="sec-no">§08</span><span class="sec-title">Inquiry Desk</span></div>
     <p class="sec-note">A Groq + Llama 3 agent that reasons over the model scores, PubMed research,
-      Reddit sentiment and FDA labels for the selected specimen (<b id="chatDrug">—</b>), personalised
+      Reddit sentiment and FDA labels for the selected drug (<b id="chatDrug">—</b>), personalised
       to the profile below. Connect the live API to consult it.</p>
     <div class="api-row">
       <span id="apiStatus" class="api-off">● backend not connected</span>
@@ -346,7 +361,7 @@
       <input type="text" id="chatInput" placeholder="e.g. Is this safe for me given my profile?" />
       <button class="btn red" id="chatSend">Send</button>
     </div>
-    <p class="fn"><sup>†</sup> One-key demo API in
+    <p class="fn"><sup>†</sup> One-command demo deploy in
       <a href="https://github.com/oscar-melendez77/PharmaWatch/blob/main/DEPLOY.md">DEPLOY.md</a>.
       Answers are grounded in the record above.</p>
   </section>
@@ -382,19 +397,25 @@ const fmt=n=> n>=1000 ? (n/1000).toFixed(n>=10000?0:1)+'k' : String(n);
 function renderKeyfig(){
   const s=DATA.stats;
   const rows=[
-    ['drugs', s.drugs, 'specimens tracked', false],
-    ['reports', fmt(s.adverse_reports), 'FAERS adverse-event reports', false],
-    ['papers', fmt(s.research_papers), 'PubMed abstracts indexed', false],
-    ['auc', s.avg_auc.toFixed(3), 'mean model discrimination (AUC)', false],
-    ['high', s.high_risk, 'specimens flagged HIGH risk', true],
-    ['sources', s.data_sources, 'public data sources joined', false],
+    ['drugs', s.drugs, 'drugs tracked in the current record', false],
+    ['reports', s.adverse_reports.toLocaleString(), 'FAERS adverse-event reports', false],
+    ['papers', s.research_papers.toLocaleString(), 'PubMed abstracts indexed', false],
+    ['mean AUC', s.avg_auc.toFixed(3), 'mean model discrimination across 4 classifiers', false],
+    ['high risk', s.high_risk, 'drugs flagged HIGH serious-reaction risk', true],
+    ['sources', s.data_sources, 'public data sources joined per drug', false],
   ];
   document.getElementById('keyfig').innerHTML = rows.map(([k,v,d,red])=>
-    `<tr><td class="kf-v ${red?'red':''}">${v}</td><td class="kf-l">${k}</td><td class="kf-d">${d}</td></tr>`).join('');
+    `<tr><td class="kf-v ${red?'red':''}">${v}</td><td><div class="kf-l">${k}</div><div class="kf-d">${d}</div></td></tr>`).join('');
 }
+const FEATURE_LABELS={drug_name:'Drug identity',age_group:'Age group',adv_avg_age:'Avg patient age',
+  adv_serious_reports:'Serious report count',adv_total_reports:'Total report volume',
+  sent_total_mentions:'Reddit mention volume',sent_avg_score:'Reddit engagement',
+  res_total_papers:'Research volume',lbl_warnings_length:'Label warning length',lbl_has_interactions:'Has interactions'};
+const feat=f=>FEATURE_LABELS[f]||f.replace(/_/g,' ');
+
 function renderSources(){
   document.getElementById('sourcesBody').innerHTML = DATA.source_stats.map(s=>`
-    <tr><td><span class="src-n">${s.icon} ${s.source}</span><div class="src-role">${s.unit}</div></td>
+    <tr><td><span class="src-n"><span class="src-mark">■</span>${s.source}</span><div class="src-role">${s.code} · ${s.unit}</div></td>
     <td>${s.note}</td><td class="r">${s.records.toLocaleString()}</td></tr>`).join('');
 }
 const STAGES=[
@@ -416,7 +437,7 @@ function renderSpec(){
 function renderRuns(){
   document.getElementById('runlog').innerHTML = DATA.pipeline_runs.map(r=>{
     const cls=r.status==='ok'?'tick':(r.status==='error'?'fail':'run');
-    const lab=r.status==='ok'?'● complete':(r.status==='error'?'● failed':'● running');
+    const lab=r.status==='ok'?'✓ complete':(r.status==='error'?'✗ failed':'▸ running');
     return `<tr><td>${r.date}</td><td class="${cls}">${lab}</td>
       <td class="r">${Math.floor(r.duration_s/60)}m ${r.duration_s%60}s</td>
       <td class="r">${r.rows.toLocaleString()}</td>
@@ -437,22 +458,24 @@ function chartRank(){
   document.getElementById('chart-rank').on('plotly_click',e=>{selectDrug(e.points[0].y);document.getElementById('monograph').scrollIntoView({behavior:'smooth'});});
 }
 function chartMatrix(){
-  const drugs=DATA.profiles.map(d=>d.drug_name);
+  // ascending sort so Plotly places highest-risk drug at the TOP row, matching Fig. 1
+  const prof=[...DATA.profiles].sort((a,b)=>a.serious_reaction_pct-b.serious_reaction_pct);
+  const drugs=prof.map(d=>d.drug_name);
   const cols=[['serious_reaction_pct','Serious'],['hospitalization_pct','Hosp.'],['death_pct','Death'],['disability_pct','Disab.']];
-  const raw=cols.map(([k])=>DATA.profiles.map(d=>d[k]));
+  const raw=cols.map(([k])=>prof.map(d=>d[k]));
   const z=drugs.map((_,di)=>cols.map((_,ci)=>{const a=raw[ci],mn=Math.min(...a),mx=Math.max(...a);return mx===mn?.5:(raw[ci][di]-mn)/(mx-mn);}));
   const text=drugs.map((_,di)=>cols.map((_,ci)=>raw[ci][di].toFixed(1)));
   Plotly.newPlot('chart-matrix',[{
     type:'heatmap',x:cols.map(c=>c[1]),y:drugs,z:z,text:text,texttemplate:'%{text}',
     textfont:{size:10,family:MONO,color:INK},
-    colorscale:[[0,'#f1ebda'],[.5,'#dd9b7e'],[1,RED]],showscale:false,xgap:2,ygap:2,
+    colorscale:[[0,'#f1ebda'],[.5,'#dd9b7e'],[1,'#cf6a56']],showscale:false,xgap:2,ygap:2,
     hovertemplate:'%{y} · %{x}: %{text}%<extra></extra>'
-  }],layout({margin:{l:92,r:10,t:6,b:28},xaxis:{side:'top',tickfont:{size:10}},yaxis:{automargin:true}}),CFG);
+  }],layout({margin:{l:92,r:10,t:26,b:14},xaxis:{side:'top',tickfont:{size:10}},yaxis:{automargin:true}}),CFG);
 }
 function chartShap(d){
   const s=[...d.shap_values].sort((a,b)=>Math.abs(a.contribution)-Math.abs(b.contribution)).slice(-8);
   Plotly.newPlot('chart-shap',[{
-    type:'bar',orientation:'h',y:s.map(x=>x.feature.replace(/_/g,' ')),x:s.map(x=>x.contribution),
+    type:'bar',orientation:'h',y:s.map(x=>feat(x.feature)),x:s.map(x=>x.contribution),
     marker:{color:s.map(x=>x.contribution>=0?RED:SLATE),line:{color:INK,width:1}},
     hovertemplate:'%{y}: %{x:.3f}<extra></extra>'
   }],layout({margin:{l:150,r:14,t:6,b:30},xaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,ticks:'outside',tickcolor:RULE}}),CFG);
@@ -480,9 +503,11 @@ function chartScatter(){
   Plotly.newPlot('chart-scatter',[{
     type:'scatter',mode:'markers+text',x:rc.map(d=>d.research),y:rc.map(d=>d.community),
     text:rc.map(d=>d.drug),textposition:'top center',textfont:{size:9,color:INK2,family:MONO},
-    marker:{size:rc.map(d=>10+d.serious/3.2),color:rc.map(d=>RISK[d.risk_label]||INK),line:{color:INK,width:1},opacity:.92},
-    hovertemplate:'%{text}<br>research %{x:.0f}% · community %{y:.0f}<extra></extra>'
-  }],layout({margin:{l:48,r:16,t:8,b:40},
+    customdata:rc.map(d=>d.risk_label),
+    marker:{size:rc.map(d=>10+d.serious/3.6),color:rc.map(d=>RISK[d.risk_label]||INK),
+      line:{color:INK,width:rc.map(d=>d.risk_label==='HIGH'?2.5:1)},opacity:.92},
+    hovertemplate:'%{text} — %{customdata} risk<br>research %{x:.0f}% · community %{y:.0f}<extra></extra>'
+  }],layout({margin:{l:48,r:16,t:24,b:40},
     xaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,ticks:'outside',tickcolor:RULE,title:{text:'RESEARCH CONSENSUS (%)',font:{size:10,color:FAINT}}},
     yaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,ticks:'outside',tickcolor:RULE,title:{text:'COMMUNITY CONCERN',font:{size:10,color:FAINT}}}}),CFG);
 }
@@ -490,14 +515,16 @@ function chartReactions(){
   const r=[...DATA.reaction_leaderboard].sort((a,b)=>a.score-b.score);
   Plotly.newPlot('chart-reactions',[{
     type:'bar',orientation:'h',y:r.map(x=>x.reaction),x:r.map(x=>x.score),
-    marker:{color:INK,line:{color:INK,width:1}},hovertemplate:'%{y}: %{x:.0f}<extra></extra>'
-  }],layout({margin:{l:100,r:16,t:6,b:28}}),CFG);
+    marker:{color:INK,line:{color:INK,width:1}},
+    text:r.map(x=>x.score.toFixed(0)),textposition:'outside',outsidetextfont:{color:INK,family:MONO,size:10},cliponaxis:false,
+    hovertemplate:'%{y}: %{x:.0f}<extra></extra>'
+  }],layout({margin:{l:100,r:34,t:6,b:28}}),CFG);
 }
 function chartAuc(){
   const m=DATA.model_metrics;
   Plotly.newPlot('chart-auc',[{
     type:'bar',x:m.map(d=>d.model),y:m.map(d=>d.auc),
-    marker:{color:m.map((_,i)=>i===0?RED:INK),line:{color:INK,width:1}},
+    marker:{color:INK,line:{color:INK,width:1}},
     text:m.map(d=>d.auc.toFixed(3)),textposition:'outside',outsidetextfont:{color:INK,family:MONO,size:10},cliponaxis:false,
     hovertemplate:'%{x}: AUC %{y:.3f}<extra></extra>'
   }],layout({margin:{l:40,r:12,t:18,b:36},yaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,range:[0.5,1]}}),CFG);
@@ -506,8 +533,10 @@ function chartImportance(){
   const f=[...DATA.feature_importance].sort((a,b)=>a.importance-b.importance);
   Plotly.newPlot('chart-importance',[{
     type:'bar',orientation:'h',y:f.map(x=>x.feature),x:f.map(x=>x.importance),
-    marker:{color:INK,line:{color:INK,width:1}},hovertemplate:'%{y}: %{x:.3f}<extra></extra>'
-  }],layout({margin:{l:150,r:14,t:6,b:28}}),CFG);
+    marker:{color:INK,line:{color:INK,width:1}},
+    text:f.map(x=>x.importance.toFixed(3)),textposition:'outside',outsidetextfont:{color:INK,family:MONO,size:10},cliponaxis:false,
+    hovertemplate:'%{y}: %{x:.3f}<extra></extra>'
+  }],layout({margin:{l:150,r:40,t:6,b:28}}),CFG);
 }
 
 /* ---- MONOGRAPH ---- */
@@ -528,7 +557,7 @@ function selectDrug(name){
     <div class="facts-row"><span class="fl">Research consensus</span><span class="fv">${d.research_risk_consensus.toFixed(0)}%</span></div>
     <div class="facts-row"><span class="fl">Dependency · withdrawal</span><span class="fv">${d.dependency_mention_rate.toFixed(0)}% · ${d.withdrawal_mention_rate.toFixed(0)}%</span></div>
     <div class="facts-row thick"><span class="fl">Adverse reports on file</span><span class="fv">${d.total_reports.toLocaleString()}</span></div>
-    <div class="facts-note">Top risk factor: <b>${d.top_risk_factor.replace(/_/g,' ')}</b>. Research papers on file: ${d.total_research_papers}.</div>`;
+    <div class="facts-note">Top risk factor: <b>${feat(d.top_risk_factor)}</b>. Research papers on file: ${d.total_research_papers}.</div>`;
 
   const cls=d.risk_label==='HIGH'?'':(d.risk_label==='MEDIUM'?'md':'lo');
   document.getElementById('riskStamp').innerHTML=`<span class="riskstamp ${cls}">${d.risk_label} Risk</span>`;
@@ -548,14 +577,18 @@ const trimSlash=u=>(u||'').replace(/\/+$/,'');
 function setApiStatus(){const b=getApiBase(),el=document.getElementById('apiStatus');
   if(b){el.textContent='● connected: '+b;el.className='api-ok';document.getElementById('apiInput').value=b;}
   else{el.textContent='● backend not connected';el.className='api-off';}}
-function addMsg(t,c){const l=document.getElementById('chatLog'),d=document.createElement('div');
-  d.className='msg '+c;d.textContent=t;l.appendChild(d);l.scrollTop=l.scrollHeight;return d;}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function addMsg(t,c){const l=document.getElementById('chatLog'),d=document.createElement('div');d.className='msg '+c;
+  if(c==='sys'){d.textContent=t;}
+  else{const tag=c==='user'?'Inquiry':'Record';
+    d.innerHTML='<span class="mtag">'+tag+' —</span><span class="mbody">'+escapeHtml(t)+'</span>';}
+  l.appendChild(d);l.scrollTop=l.scrollHeight;return d;}
 async function sendChat(){
   const inp=document.getElementById('chatInput'),q=inp.value.trim();if(!q)return;
   const base=getApiBase();
   if(!base){addMsg('Connect your live API first — paste its URL above.','sys');return;}
-  if(!current){addMsg('Select a specimen first.','sys');return;}
-  addMsg(q,'user');inp.value='';const th=addMsg('…consulting record','bot');
+  if(!current){addMsg('Select a drug first.','sys');return;}
+  addMsg(q,'user');inp.value='';const th=addMsg('…consulting the record','sys');
   try{
     const resp=await fetch(trimSlash(base)+'/ask',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({drug_name:current.drug_name,age:parseInt(document.getElementById('chatAge').value,10)||30,weight:70,question:q,
@@ -587,7 +620,7 @@ fetch('data/dashboard.json').then(r=>r.json()).then(d=>{
     'GENERATED <b>'+m.generated_at.slice(0,10)+'</b>'+
     ' · CLASSIFICATION <b>PUBLIC</b>'+
     ' · DATA <b>'+(m.mode==='live'?'LIVE':'SAMPLE')+'</b>'+
-    ' · SPECIMENS <b>'+d.stats.drugs+'</b>'+
+    ' · DRUGS <b>'+d.stats.drugs+'</b>'+
     ' · SOURCES <b>'+d.stats.data_sources+'</b>';
   if(m.mode!=='live'){document.getElementById('stamp').innerHTML='Sample Data<br>Educational';}
 

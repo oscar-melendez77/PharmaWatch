@@ -1,15 +1,15 @@
 {
   "meta": {
-    "generated_at": "2026-07-08T00:17:52.974249+00:00",
+    "generated_at": "2026-07-08T01:00:38.553371+00:00",
     "mode": "sample",
     "drug_count": 8,
     "api_base_url": "",
-    "disclaimer": "Educational demo. Risk scores are model estimates, not medical advice. Sample data is synthetic when not connected to the live API."
+    "disclaimer": "Educational demo \u2014 model estimates, not medical advice. When not connected to the live API, all figures shown are synthetic sample data, not real FAERS / PubMed / Reddit output."
   },
   "stats": {
     "drugs": 8,
-    "adverse_reports": 38414,
-    "research_papers": 506,
+    "adverse_reports": 33935,
+    "research_papers": 430,
     "data_sources": 4,
     "ml_models": 4,
     "avg_auc": 0.849,
@@ -23,44 +23,46 @@
       "death_pct": 12.0,
       "disability_pct": 9.1,
       "risk_label": "HIGH",
-      "dependency_mention_rate": 33.3,
-      "withdrawal_mention_rate": 33.8,
-      "community_concern_score": 61.7,
-      "research_risk_consensus": 74.6,
-      "total_research_papers": 49,
-      "total_reports": 7314,
+      "dependency_mention_rate": 10.3,
+      "withdrawal_mention_rate": 8.2,
+      "community_concern_score": 29.8,
+      "research_risk_consensus": 38.6,
+      "total_research_papers": 21,
+      "total_reports": 6386,
       "age_distribution": {
-        "0-17": 22.7,
-        "18-34": 30.6,
-        "35-64": 15.4,
-        "65+": 31.2
+        "0-17": 13.1,
+        "18-34": 31.6,
+        "35-64": 32.0,
+        "65+": 23.3
       },
       "top_5_reactions": [
         {
-          "reaction": "Fatigue",
+          "reaction": "Respiratory depression",
           "frequency_pct": 24.4
         },
         {
-          "reaction": "Vomiting",
+          "reaction": "Sedation",
           "frequency_pct": 19.6
         },
         {
-          "reaction": "Somnolence",
+          "reaction": "Fatigue",
           "frequency_pct": 12.8
         },
         {
-          "reaction": "Tremor",
+          "reaction": "Vomiting",
           "frequency_pct": 12.1
         },
         {
-          "reaction": "Headache",
+          "reaction": "Somnolence",
           "frequency_pct": 8.9
         }
       ],
-      "label_warning_severity": "LOW",
+      "label_warning_severity": "HIGH",
       "known_interactions": [
+        "SSRIs",
         "MAO inhibitors",
-        "SSRIs"
+        "Beta blockers",
+        "Alcohol"
       ],
       "shap_values": [
         {
@@ -113,43 +115,46 @@
       "death_pct": 4.3,
       "disability_pct": 15.6,
       "risk_label": "HIGH",
-      "dependency_mention_rate": 32.2,
-      "withdrawal_mention_rate": 26.4,
-      "community_concern_score": 39.5,
-      "research_risk_consensus": 15.2,
-      "total_research_papers": 67,
-      "total_reports": 6961,
+      "dependency_mention_rate": 24.3,
+      "withdrawal_mention_rate": 10.2,
+      "community_concern_score": 47.6,
+      "research_risk_consensus": 73.3,
+      "total_research_papers": 102,
+      "total_reports": 8600,
       "age_distribution": {
-        "0-17": 21.8,
-        "18-34": 28.3,
-        "35-64": 32.6,
-        "65+": 17.4
+        "0-17": 18.9,
+        "18-34": 23.1,
+        "35-64": 32.1,
+        "65+": 25.9
       },
       "top_5_reactions": [
         {
-          "reaction": "Headache",
+          "reaction": "Respiratory depression",
           "frequency_pct": 30.0
         },
         {
-          "reaction": "Somnolence",
+          "reaction": "Constipation",
           "frequency_pct": 29.2
         },
         {
-          "reaction": "Dizziness",
+          "reaction": "Headache",
           "frequency_pct": 26.4
         },
         {
-          "reaction": "Fatigue",
+          "reaction": "Somnolence",
           "frequency_pct": 8.1
         },
         {
-          "reaction": "Vomiting",
+          "reaction": "Dizziness",
           "frequency_pct": 6.6
         }
       ],
-      "label_warning_severity": "MEDIUM",
+      "label_warning_severity": "HIGH",
       "known_interactions": [
-        "Benzodiazepines"
+        "Benzodiazepines",
+        "MAO inhibitors",
+        "Beta blockers",
+        "Alcohol"
       ],
       "shap_values": [
         {
@@ -216,23 +221,23 @@
       },
       "top_5_reactions": [
         {
-          "reaction": "Vomiting",
+          "reaction": "Bleeding",
           "frequency_pct": 22.1
         },
         {
-          "reaction": "Anxiety",
+          "reaction": "Bruising",
           "frequency_pct": 14.8
         },
         {
-          "reaction": "Tachycardia",
+          "reaction": "Vomiting",
           "frequency_pct": 13.9
         },
         {
-          "reaction": "Somnolence",
+          "reaction": "Anxiety",
           "frequency_pct": 11.7
         },
         {
-          "reaction": "Nausea",
+          "reaction": "Tachycardia",
           "frequency_pct": 10.7
         }
       ],
@@ -307,27 +312,27 @@
       },
       "top_5_reactions": [
         {
-          "reaction": "Fatigue",
+          "reaction": "Drowsiness",
           "frequency_pct": 21.3
         },
         {
-          "reaction": "Dizziness",
+          "reaction": "Dependence",
           "frequency_pct": 20.0
         },
         {
-          "reaction": "Tremor",
+          "reaction": "Fatigue",
           "frequency_pct": 18.2
         },
         {
-          "reaction": "Nausea",
+          "reaction": "Dizziness",
           "frequency_pct": 14.5
         },
         {
-          "reaction": "Somnolence",
+          "reaction": "Tremor",
           "frequency_pct": 6.4
         }
       ],
-      "label_warning_severity": "LOW",
+      "label_warning_severity": "MEDIUM",
       "known_interactions": [
         "Beta blockers"
       ],
@@ -416,7 +421,7 @@
           "frequency_pct": 5.4
         }
       ],
-      "label_warning_severity": "LOW",
+      "label_warning_severity": "HIGH",
       "known_interactions": [
         "MAO inhibitors",
         "Alcohol",
@@ -473,43 +478,44 @@
       "death_pct": 3.6,
       "disability_pct": 8.9,
       "risk_label": "MEDIUM",
-      "dependency_mention_rate": 9.7,
-      "withdrawal_mention_rate": 7.3,
-      "community_concern_score": 20.1,
-      "research_risk_consensus": 73.8,
-      "total_research_papers": 94,
-      "total_reports": 3362,
+      "dependency_mention_rate": 10.4,
+      "withdrawal_mention_rate": 6.7,
+      "community_concern_score": 21.4,
+      "research_risk_consensus": 77.2,
+      "total_research_papers": 26,
+      "total_reports": 1690,
       "age_distribution": {
-        "0-17": 19.0,
-        "18-34": 18.0,
-        "35-64": 15.6,
-        "65+": 47.3
+        "0-17": 17.4,
+        "18-34": 21.2,
+        "35-64": 22.9,
+        "65+": 38.5
       },
       "top_5_reactions": [
         {
-          "reaction": "Insomnia",
+          "reaction": "Nausea",
           "frequency_pct": 27.3
         },
         {
-          "reaction": "Somnolence",
+          "reaction": "Diarrhea",
           "frequency_pct": 22.3
         },
         {
-          "reaction": "Anxiety",
+          "reaction": "Insomnia",
           "frequency_pct": 22.1
         },
         {
-          "reaction": "Tachycardia",
+          "reaction": "Somnolence",
           "frequency_pct": 15.5
         },
         {
-          "reaction": "Headache",
+          "reaction": "Anxiety",
           "frequency_pct": 7.6
         }
       ],
-      "label_warning_severity": "MEDIUM",
+      "label_warning_severity": "LOW",
       "known_interactions": [
-        "SSRIs"
+        "Alcohol",
+        "NSAIDs"
       ],
       "shap_values": [
         {
@@ -562,45 +568,43 @@
       "death_pct": 3.1,
       "disability_pct": 6.0,
       "risk_label": "LOW",
-      "dependency_mention_rate": 11.8,
-      "withdrawal_mention_rate": 7.3,
-      "community_concern_score": 62.3,
-      "research_risk_consensus": 45.4,
-      "total_research_papers": 103,
-      "total_reports": 8969,
+      "dependency_mention_rate": 8.3,
+      "withdrawal_mention_rate": 8.2,
+      "community_concern_score": 52.8,
+      "research_risk_consensus": 66.2,
+      "total_research_papers": 88,
+      "total_reports": 5451,
       "age_distribution": {
-        "0-17": 17.0,
-        "18-34": 19.1,
-        "35-64": 18.2,
-        "65+": 45.6
+        "0-17": 19.4,
+        "18-34": 18.5,
+        "35-64": 19.3,
+        "65+": 42.8
       },
       "top_5_reactions": [
         {
-          "reaction": "Anxiety",
+          "reaction": "Dry cough",
           "frequency_pct": 25.9
         },
         {
-          "reaction": "Fatigue",
+          "reaction": "Dizziness",
           "frequency_pct": 20.6
         },
         {
-          "reaction": "Tremor",
+          "reaction": "Anxiety",
           "frequency_pct": 18.1
         },
         {
-          "reaction": "Tachycardia",
+          "reaction": "Fatigue",
           "frequency_pct": 14.8
         },
         {
-          "reaction": "Headache",
+          "reaction": "Tremor",
           "frequency_pct": 6.5
         }
       ],
-      "label_warning_severity": "MEDIUM",
+      "label_warning_severity": "LOW",
       "known_interactions": [
-        "NSAIDs",
-        "Benzodiazepines",
-        "MAO inhibitors"
+        "Beta blockers"
       ],
       "shap_values": [
         {
@@ -667,27 +671,27 @@
       },
       "top_5_reactions": [
         {
-          "reaction": "Anxiety",
+          "reaction": "GI irritation",
           "frequency_pct": 29.6
         },
         {
-          "reaction": "Dizziness",
+          "reaction": "Heartburn",
           "frequency_pct": 28.5
         },
         {
-          "reaction": "Fatigue",
+          "reaction": "Anxiety",
           "frequency_pct": 15.0
         },
         {
-          "reaction": "Nausea",
+          "reaction": "Dizziness",
           "frequency_pct": 7.0
         },
         {
-          "reaction": "Tremor",
+          "reaction": "Fatigue",
           "frequency_pct": 6.8
         }
       ],
-      "label_warning_severity": "LOW",
+      "label_warning_severity": "MEDIUM",
       "known_interactions": [
         "Warfarin",
         "MAO inhibitors",
@@ -809,49 +813,49 @@
   "reaction_leaderboard": [
     {
       "reaction": "Fatigue",
-      "score": 106.7
+      "score": 69.9
     },
     {
-      "reaction": "Anxiety",
-      "score": 92.4
-    },
-    {
-      "reaction": "Somnolence",
-      "score": 82.4
+      "reaction": "Respiratory depression",
+      "score": 54.4
     },
     {
       "reaction": "Dizziness",
-      "score": 80.3
+      "score": 54.1
     },
     {
-      "reaction": "Tachycardia",
-      "score": 63.7
-    },
-    {
-      "reaction": "Tremor",
-      "score": 55.2
+      "reaction": "Anxiety",
+      "score": 52.4
     },
     {
       "reaction": "Insomnia",
-      "score": 53.9
+      "score": 48.7
     },
     {
-      "reaction": "Headache",
-      "score": 53.0
+      "reaction": "Nausea",
+      "score": 40.0
+    },
+    {
+      "reaction": "Somnolence",
+      "score": 32.5
+    },
+    {
+      "reaction": "Tachycardia",
+      "score": 30.2
     }
   ],
   "research_community": [
     {
       "drug": "Fentanyl",
-      "research": 74.6,
-      "community": 61.7,
+      "research": 38.6,
+      "community": 29.8,
       "serious": 86.1,
       "risk_label": "HIGH"
     },
     {
       "drug": "Oxycodone",
-      "research": 15.2,
-      "community": 39.5,
+      "research": 73.3,
+      "community": 47.6,
       "serious": 71.5,
       "risk_label": "HIGH"
     },
@@ -878,15 +882,15 @@
     },
     {
       "drug": "Metformin",
-      "research": 73.8,
-      "community": 20.1,
+      "research": 77.2,
+      "community": 21.4,
       "serious": 34.3,
       "risk_label": "MEDIUM"
     },
     {
       "drug": "Lisinopril",
-      "research": 45.4,
-      "community": 62.3,
+      "research": 66.2,
+      "community": 52.8,
       "serious": 22.3,
       "risk_label": "LOW"
     },
@@ -901,29 +905,29 @@
   "source_stats": [
     {
       "source": "FDA FAERS",
-      "icon": "\ud83e\ude79",
-      "records": 38414,
+      "code": "FAERS",
+      "records": 33935,
       "unit": "adverse-event reports",
       "note": "Serious reaction, hospitalization, death & disability signals"
     },
     {
       "source": "PubMed",
-      "icon": "\ud83d\udcc4",
-      "records": 506,
+      "code": "PUBMED",
+      "records": 430,
       "unit": "research abstracts",
       "note": "Semantic index powering the research digest + RAG agent"
     },
     {
       "source": "OpenFDA Labels",
-      "icon": "\ud83c\udff7\ufe0f",
+      "code": "OPENFDA",
       "records": 8,
       "unit": "structured drug labels",
       "note": "Boxed warnings, interactions & warning severity"
     },
     {
       "source": "Reddit",
-      "icon": "\ud83d\udcac",
-      "records": 13236,
+      "code": "REDDIT",
+      "records": 11956,
       "unit": "community posts",
       "note": "Dependency, withdrawal & real-world concern signal"
     }
