@@ -3,715 +3,610 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PharmaWatch — Drug Risk Intelligence</title>
+<title>PharmaWatch — Drug Safety Dossier</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:#080b10; --surface:#0e131a; --surface-2:#141b24;
-    --border:#202a36; --border-2:#2e3b4a;
-    --text:#e6edf3; --muted:#8593a1;
-    --accent:#22c3a6; --accent-2:#38bdf8;
-    --low:#3fb950; --medium:#d6a020; --high:#f85149; --critical:#da3633;
+  :root{
+    --desk:#e7e1d2; --paper:#faf8f1; --sheet-edge:#efeadb;
+    --ink:#1c1a15; --ink-2:#57524a; --faint:#8b8676;
+    --rule:#d3ccba; --ledger:#e9e3d1;
+    --red:#b5372b; --red-deep:#8f2a20; --ochre:#a9781f; --green:#4e6b46; --slate:#3f5d7a;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --serif:'Fraunces',Georgia,'Times New Roman',serif;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
   }
-  * { box-sizing:border-box; margin:0; padding:0; }
-  body {
-    background:var(--bg); color:var(--text); line-height:1.6;
-    font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-    -webkit-font-smoothing:antialiased;
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--desk);
+    background-image:linear-gradient(var(--ledger) 1px,transparent 1px);
+    background-size:100% 30px;
+    color:var(--ink); font-family:var(--sans); line-height:1.62;
+    -webkit-font-smoothing:antialiased; padding:0 16px;
   }
-  a { color:var(--accent); text-decoration:none; }
-  ::selection { background:rgba(34,195,166,.25); }
+  a{color:var(--red);text-decoration:none;border-bottom:1px solid rgba(181,55,43,.35)}
+  a:hover{border-bottom-color:var(--red)}
+  ::selection{background:rgba(181,55,43,.18)}
 
-  /* NAV */
-  nav {
-    position:sticky; top:0; z-index:100; height:56px;
-    background:rgba(8,11,16,.9); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-    border-bottom:1px solid var(--border); padding:0 24px;
-    display:flex; align-items:center; gap:24px;
-  }
-  nav .logo { font-weight:800; font-size:.95rem; letter-spacing:-.02em; color:var(--text);
-    display:flex; align-items:center; gap:9px; flex-shrink:0; }
-  nav .logo-dot { width:8px; height:8px; background:var(--accent); border-radius:50%;
-    box-shadow:0 0 10px rgba(34,195,166,.9); }
-  nav .links { display:flex; gap:20px; overflow-x:auto; scrollbar-width:none; }
-  nav .links::-webkit-scrollbar { display:none; }
-  nav a.nl { color:var(--muted); font-size:.82rem; font-weight:500; white-space:nowrap; transition:color .15s; }
-  nav a.nl:hover { color:var(--text); }
-  nav .tag { margin-left:auto; flex-shrink:0; font-family:'IBM Plex Mono',monospace;
-    background:rgba(34,195,166,.08); border:1px solid rgba(34,195,166,.25); color:var(--accent);
-    font-size:.66rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; padding:4px 11px; border-radius:2px; }
+  /* SHEET */
+  .sheet{max-width:1020px; margin:22px auto 0; background:var(--paper);
+    border:1px solid var(--sheet-edge); box-shadow:0 1px 0 #fff inset, 0 18px 40px -22px rgba(30,26,18,.5);
+    padding:0; position:relative; }
+  .pad{padding:38px 52px}
+  @media(max-width:680px){ .pad{padding:26px 22px} body{padding:0 8px} }
 
-  /* HERO */
-  .hero { text-align:center; padding:96px 24px 68px; position:relative; overflow:hidden; }
-  .hero::before { content:''; position:absolute; inset:0; pointer-events:none; background:
-    radial-gradient(ellipse 75% 50% at 50% -8%, rgba(34,195,166,.12) 0%, transparent 62%),
-    radial-gradient(ellipse 40% 40% at 12% 60%, rgba(56,189,248,.06) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 40% at 88% 65%, rgba(248,81,73,.05) 0%, transparent 60%); }
-  .hero .badge, .kicker {
-    display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace;
-    background:rgba(34,195,166,.07); border:1px solid rgba(34,195,166,.22); color:var(--accent);
-    font-size:.72rem; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
-    padding:5px 14px; border-radius:2px; margin-bottom:26px; }
-  .hero .badge::before { content:''; width:5px; height:5px; background:var(--accent); box-shadow:0 0 6px var(--accent); }
-  .hero h1 { font-size:clamp(2.1rem,5.4vw,3.7rem); font-weight:900; line-height:1.08; letter-spacing:-.025em; margin-bottom:20px; }
-  .grad { background:linear-gradient(120deg,#22c3a6 0%,#38bdf8 55%,#8ce0ff 100%);
-    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
-  .hero p.lede { color:var(--muted); max-width:600px; margin:0 auto 26px; font-size:1.06rem; line-height:1.75; }
-  .chips { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:8px; }
-  .chip { font-family:'IBM Plex Mono',monospace; font-size:.76rem; padding:6px 13px; border-radius:2px;
-    border:1px solid var(--border-2); background:var(--surface-2); color:var(--muted); cursor:pointer; transition:all .15s; }
-  .chip:hover { border-color:var(--accent); color:var(--text); }
-  .data-flag { font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--muted); margin-top:22px; }
-  .data-flag b { color:var(--accent); }
+  /* MASTHEAD */
+  .masthead{position:relative;overflow:hidden}
+  .mast-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .brand{font-family:var(--mono);font-weight:600;font-size:.82rem;letter-spacing:.34em;text-transform:uppercase}
+  .brand .sq{display:inline-block;width:9px;height:9px;background:var(--red);margin-right:10px;vertical-align:middle}
+  .docno{font-family:var(--mono);font-size:.72rem;color:var(--ink-2);text-align:right;letter-spacing:.04em}
+  .mast-title{font-family:var(--serif);font-weight:900;font-size:clamp(2.3rem,6vw,4rem);line-height:.98;
+    letter-spacing:-.02em;margin:20px 0 8px;font-optical-sizing:auto}
+  .mast-sub{font-family:var(--mono);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+  .rule-double{border:0;border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);height:4px;margin:22px 0 12px}
+  .meta-line{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;color:var(--ink-2);
+    display:flex;gap:6px 20px;flex-wrap:wrap;text-transform:uppercase}
+  .meta-line b{color:var(--ink);font-weight:600}
+  .stamp{position:absolute;top:26px;right:44px;transform:rotate(-9deg);border:2.5px solid var(--red);
+    color:var(--red);font-family:var(--mono);font-weight:600;font-size:.62rem;letter-spacing:.14em;
+    text-transform:uppercase;padding:7px 12px;line-height:1.25;text-align:center;opacity:.72;border-radius:2px;
+    box-shadow:0 0 0 2px rgba(250,248,241,.6) inset}
+  @media(max-width:680px){ .stamp{position:static;display:inline-block;transform:rotate(-4deg);margin-top:16px} }
 
-  /* STAT BAR */
-  .statbar { border-top:1px solid var(--border); border-bottom:1px solid var(--border);
-    background:linear-gradient(180deg, rgba(20,27,36,.5), rgba(8,11,16,0)); }
-  .statbar .inner { max-width:1120px; margin:0 auto; display:flex; flex-wrap:wrap; justify-content:space-around; padding:26px 20px; }
-  .stat { text-align:center; padding:10px 22px; }
-  .stat .v { font-size:2.3rem; font-weight:800; line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
-  .stat .l { font-family:'IBM Plex Mono',monospace; font-size:.7rem; color:var(--muted);
-    text-transform:uppercase; letter-spacing:.07em; margin-top:7px; }
+  /* NAV STRIP */
+  .indexbar{position:sticky;top:0;z-index:50;background:rgba(250,248,241,.94);backdrop-filter:blur(6px);
+    border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);
+    display:flex;gap:0;overflow-x:auto;scrollbar-width:none}
+  .indexbar::-webkit-scrollbar{display:none}
+  .indexbar a{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-2);padding:9px 15px;white-space:nowrap;border:0;border-right:1px solid var(--rule)}
+  .indexbar a:hover{background:var(--ink);color:var(--paper)}
 
   /* SECTIONS */
-  section { max-width:1120px; margin:0 auto; padding:68px 24px; }
-  section + section, .band + section { border-top:1px solid var(--border); }
-  .section-label { display:inline-flex; align-items:center; font-family:'IBM Plex Mono',monospace;
-    font-size:.68rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--accent);
-    background:rgba(34,195,166,.07); border:1px solid rgba(34,195,166,.18); padding:3px 10px; border-radius:2px; margin-bottom:14px; }
-  h2 { font-size:1.7rem; font-weight:800; letter-spacing:-.015em; margin-bottom:8px; }
-  .subtitle { color:var(--muted); font-size:.96rem; max-width:680px; line-height:1.7; margin-bottom:32px; }
-  .narrative p { color:var(--muted); font-size:1.02rem; line-height:1.85; margin-bottom:16px; max-width:760px; }
-  .narrative p strong { color:var(--text); font-weight:600; }
+  section{padding:44px 0;border-top:1px solid var(--rule)}
+  section:first-of-type{border-top:0}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+  .sec-no{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--red);letter-spacing:.1em}
+  .sec-title{font-family:var(--serif);font-weight:600;font-size:1.55rem;letter-spacing:-.01em}
+  .sec-note{font-family:var(--sans);color:var(--ink-2);font-size:.95rem;max-width:640px;margin-bottom:26px;line-height:1.7}
+  .abstract{font-family:var(--serif);font-size:1.16rem;line-height:1.75;max-width:720px;color:var(--ink)}
+  .abstract .drop{float:left;font-weight:900;font-size:3.3rem;line-height:.72;margin:6px 12px 0 0;color:var(--red);font-family:var(--serif)}
+  .narrative p{color:var(--ink-2);font-size:1rem;line-height:1.8;margin-top:14px;max-width:720px}
+  .narrative p strong{color:var(--ink);font-weight:600}
 
-  /* CARDS + GRID */
-  .card { background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:22px; transition:border-color .2s; }
-  .card:hover { border-color:var(--border-2); }
-  .card h3 { font-size:.86rem; font-weight:600; margin-bottom:14px; color:var(--text); }
-  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-  .grid-3 { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
-  @media (max-width:860px){ .grid-2 { grid-template-columns:1fr; } }
-  .chart { width:100%; min-height:300px; }
-  .chart-sm { width:100%; min-height:240px; }
+  /* KEY FIGURES TABLE */
+  .keyfig{width:100%;border-collapse:collapse;font-family:var(--mono)}
+  .keyfig td{border-bottom:1px solid var(--rule);padding:11px 6px;vertical-align:baseline}
+  .keyfig .kf-v{font-size:1.7rem;font-weight:600;color:var(--ink);letter-spacing:-.01em;width:1%;white-space:nowrap;padding-right:18px;font-variant-numeric:tabular-nums}
+  .keyfig .kf-v.red{color:var(--red)}
+  .keyfig .kf-l{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .keyfig .kf-d{font-family:var(--sans);font-size:.82rem;color:var(--faint);text-align:right}
 
-  /* SOURCE CARDS */
-  .src { background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:22px; }
-  .src .head { display:flex; align-items:center; gap:13px; margin-bottom:12px; }
-  .src .emoji { font-size:1.7rem; }
-  .src .name { font-weight:700; font-size:1.02rem; }
-  .src .kind { font-size:.76rem; color:var(--muted); font-family:'IBM Plex Mono',monospace; }
-  .src p { font-size:.86rem; color:var(--muted); line-height:1.7; margin-bottom:12px; }
-  .src .rec { font-family:'IBM Plex Mono',monospace; font-size:.78rem; color:var(--accent);
-    border-top:1px solid var(--border); padding-top:11px; font-variant-numeric:tabular-nums; }
+  /* SOURCE / LEDGER TABLE */
+  .ledger{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.82rem}
+  .ledger th{text-align:left;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+    padding:8px 10px;border-bottom:2px solid var(--ink)}
+  .ledger th.r,.ledger td.r{text-align:right;font-variant-numeric:tabular-nums}
+  .ledger td{padding:11px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+  .ledger tr:hover td{background:rgba(28,26,21,.025)}
+  .ledger .src-n{font-weight:600;color:var(--ink)}
+  .ledger .src-role{font-family:var(--sans);color:var(--ink-2);font-size:.82rem;margin-top:2px}
+  .ledger .tick{color:var(--green)} .ledger .fail{color:var(--red)} .ledger .run{color:var(--ochre)}
 
-  /* PIPELINE STAGES */
-  .stages { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
-  .stage { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent);
-    border-radius:3px; padding:14px 16px; }
-  .stage .n { font-family:'IBM Plex Mono',monospace; font-size:.64rem; color:var(--muted); letter-spacing:.1em; }
-  .stage .t { font-weight:700; font-size:.92rem; margin:3px 0 4px; }
-  .stage .d { font-size:.76rem; color:var(--muted); line-height:1.55; }
+  /* FIGURES (graph paper) */
+  .figs{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  @media(max-width:820px){ .figs{grid-template-columns:1fr} }
+  .figure{border:1px solid var(--ink);background:var(--paper);
+    background-image:linear-gradient(var(--ledger) 1px,transparent 1px),linear-gradient(90deg,var(--ledger) 1px,transparent 1px);
+    background-size:22px 22px;padding:14px 14px 8px}
+  .figcap{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;color:var(--ink-2);
+    border-top:1px solid var(--rule);margin-top:8px;padding-top:8px;text-transform:uppercase}
+  .figcap b{color:var(--red);font-weight:600}
+  .chart{width:100%;min-height:300px}
+  .chart-sm{width:100%;min-height:240px}
 
-  /* EXPLORER */
-  .explorer-head { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
-  select, input[type=text], input[type=number] { background:var(--surface); color:var(--text);
-    border:1px solid var(--border-2); border-radius:4px; padding:9px 12px; font:inherit; font-size:.9rem; }
-  .name-lg { font-size:1.35rem; font-weight:800; letter-spacing:-.01em; }
-  .pill { display:inline-flex; align-items:center; gap:7px; font-weight:700; font-size:.82rem;
-    padding:5px 13px; border-radius:2px; font-family:'IBM Plex Mono',monospace; letter-spacing:.04em; }
-  .dot { width:9px; height:9px; border-radius:50%; }
-  .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
-  @media (max-width:640px){ .tiles { grid-template-columns:repeat(2,1fr); } }
-  .tile { background:var(--surface); border:1px solid var(--border); border-radius:5px; padding:15px 16px; position:relative; overflow:hidden; }
-  .tile::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--accent); opacity:.8; }
-  .tile.risk-hi::before { background:var(--high); } .tile.risk-md::before { background:var(--medium); } .tile.risk-lo::before { background:var(--low); }
-  .tile .lbl { font-family:'IBM Plex Mono',monospace; font-size:.66rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
-  .tile .val { font-size:1.75rem; font-weight:800; margin-top:4px; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
-  .tile .base { font-size:.72rem; color:var(--muted); margin-top:2px; }
-  .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:14px; }
-  @media (max-width:640px){ .kpis { grid-template-columns:repeat(2,1fr); } }
-  .kpi { background:var(--surface); border:1px solid var(--border); border-radius:5px; padding:12px 14px; }
-  .kpi .lbl { font-family:'IBM Plex Mono',monospace; font-size:.64rem; color:var(--muted); text-transform:uppercase; }
-  .kpi .val { font-size:1.15rem; font-weight:700; margin-top:3px; font-variant-numeric:tabular-nums; }
-  .tags { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
-  .tag { font-family:'IBM Plex Mono',monospace; font-size:.78rem; color:var(--muted);
-    border:1px solid var(--border); border-radius:3px; padding:4px 10px; }
+  /* DRUG FACTS MONOGRAPH */
+  .mono-wrap{display:grid;grid-template-columns:360px 1fr;gap:26px;align-items:start}
+  @media(max-width:820px){ .mono-wrap{grid-template-columns:1fr} }
+  .specimen{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:10px}
+  select,input[type=text],input[type=number]{font-family:var(--mono);font-size:.82rem;background:var(--paper);
+    color:var(--ink);border:1px solid var(--ink);border-radius:0;padding:8px 10px}
+  select:focus,input:focus{outline:2px solid var(--red);outline-offset:-1px}
+  .facts{border:2px solid var(--ink);background:var(--paper)}
+  .facts-hd{padding:10px 14px 6px}
+  .facts-t{font-family:var(--serif);font-weight:900;font-size:1.7rem;line-height:1}
+  .facts-s{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);margin-top:4px}
+  .facts-bar{height:7px;background:var(--ink);margin:6px 0 0}
+  .facts-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+    padding:9px 14px;border-bottom:1px solid var(--rule);font-family:var(--mono)}
+  .facts-row.thick{border-bottom:4px solid var(--ink)}
+  .facts-row .fl{font-size:.8rem;color:var(--ink)} .facts-row .fl b{font-weight:600}
+  .facts-row .fv{font-size:1.02rem;font-weight:600;font-variant-numeric:tabular-nums}
+  .facts-row .fv.red{color:var(--red)}
+  .facts-note{padding:10px 14px;font-family:var(--sans);font-size:.78rem;color:var(--ink-2);line-height:1.55}
+  .riskstamp{display:inline-block;transform:rotate(-3deg);border:2px solid var(--red);color:var(--red);
+    font-family:var(--mono);font-weight:600;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;margin-top:8px}
+  .riskstamp.md{border-color:var(--ochre);color:var(--ochre)} .riskstamp.lo{border-color:var(--green);color:var(--green)}
+  .tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}
+  .tag{font-family:var(--mono);font-size:.74rem;color:var(--ink-2);border:1px solid var(--rule);padding:3px 9px}
 
-  /* INSIGHTS */
-  .insight { background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:20px; position:relative; overflow:hidden; }
-  .insight::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--accent); }
-  .insight.a::after { background:var(--high); } .insight.b::after { background:var(--accent-2); } .insight.c::after { background:var(--medium); }
-  .insight .k { font-family:'IBM Plex Mono',monospace; font-size:.66rem; color:var(--muted); text-transform:uppercase; letter-spacing:.09em; margin-bottom:8px; }
-  .insight .h { font-size:1.1rem; font-weight:800; margin-bottom:6px; letter-spacing:-.01em; }
-  .insight .p { font-size:.84rem; color:var(--muted); line-height:1.65; }
+  /* CHIPS / SPECIMEN INDEX */
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+  .chip{font-family:var(--mono);font-size:.74rem;color:var(--ink);border:1px solid var(--ink);
+    padding:5px 11px;cursor:pointer;background:var(--paper);transition:all .12s}
+  .chip:hover{background:var(--ink);color:var(--paper)}
 
-  /* PIPELINE LOG */
-  .runrow { display:grid; grid-template-columns:120px 90px 90px 90px 1fr; gap:12px; align-items:center;
-    padding:11px 14px; border-bottom:1px solid var(--border); font-size:.82rem; }
-  .runrow.h { font-family:'IBM Plex Mono',monospace; font-size:.66rem; text-transform:uppercase; letter-spacing:.08em;
-    color:var(--muted); border-bottom:1px solid var(--border-2); }
-  .runrow .ok { color:var(--low); font-weight:700; } .runrow .err { color:var(--high); font-weight:700; } .runrow .run { color:var(--medium); font-weight:700; }
-  .modpills { display:flex; flex-wrap:wrap; gap:4px; }
-  .modpill { font-family:'IBM Plex Mono',monospace; font-size:.6rem; padding:1px 6px; border-radius:2px;
-    background:rgba(34,195,166,.09); color:var(--accent); border:1px solid rgba(34,195,166,.16); }
-  @media (max-width:640px){ .runrow { grid-template-columns:90px 70px 1fr; } .runrow .hide-sm { display:none; } }
+  /* ARCHITECTURE SPEC */
+  .spec{border-top:2px solid var(--ink)}
+  .spec-row{display:grid;grid-template-columns:52px 190px 1fr;gap:14px;padding:11px 4px;
+    border-bottom:1px solid var(--rule);font-family:var(--mono);font-size:.82rem;align-items:baseline}
+  @media(max-width:680px){ .spec-row{grid-template-columns:44px 1fr} .spec-row .sd{grid-column:2} }
+  .spec-row .sn{color:var(--red);font-weight:600} .spec-row .st{font-weight:600;color:var(--ink)}
+  .spec-row .sd{font-family:var(--sans);color:var(--ink-2)}
 
-  /* TECH */
-  .tech { display:flex; flex-wrap:wrap; gap:8px; }
-  .tech .p { font-family:'IBM Plex Mono',monospace; font-size:.8rem; color:var(--muted);
-    background:var(--surface-2); border:1px solid var(--border); border-radius:2px; padding:7px 14px; transition:all .15s; }
-  .tech .p:hover { border-color:var(--accent); color:var(--text); }
+  /* CONSULT / CHAT */
+  .consult .api-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .api-ok{font-family:var(--mono);font-size:.74rem;color:var(--green);font-weight:600}
+  .api-off{font-family:var(--mono);font-size:.74rem;color:var(--faint)}
+  .chat-profile{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:14px;font-family:var(--mono);font-size:.76rem;color:var(--ink-2)}
+  .chat-profile label{display:flex;gap:6px;align-items:center}
+  .chat-log{height:290px;overflow-y:auto;border:2px solid var(--ink);background:var(--paper);
+    padding:14px;display:flex;flex-direction:column;gap:10px}
+  .msg{max-width:88%;padding:9px 13px;font-size:.9rem;white-space:pre-wrap;line-height:1.55;font-family:var(--sans)}
+  .msg.user{align-self:flex-end;background:var(--ink);color:var(--paper)}
+  .msg.bot{align-self:flex-start;border:1px solid var(--ink);background:var(--paper);color:var(--ink)}
+  .msg.sys{align-self:center;color:var(--faint);font-family:var(--mono);font-size:.74rem;text-align:center}
+  .chat-input-row{display:flex;gap:8px;margin-top:12px}
+  .chat-input-row input{flex:1}
+  .btn{font-family:var(--mono);font-size:.78rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+    border:1px solid var(--ink);background:var(--paper);color:var(--ink);padding:9px 14px;cursor:pointer}
+  .btn:hover{background:var(--ink);color:var(--paper)}
+  .btn.red{background:var(--red);border-color:var(--red);color:#fff}
+  .btn.red:hover{background:var(--red-deep)}
 
-  /* CHAT */
-  .api-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
-  .api-ok { color:var(--low); font-size:.82rem; font-weight:600; font-family:'IBM Plex Mono',monospace; }
-  .api-off { color:var(--muted); font-size:.82rem; font-family:'IBM Plex Mono',monospace; }
-  .chat-profile { display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
-  .chat-profile label { font-size:.8rem; color:var(--muted); display:flex; gap:6px; align-items:center; }
-  .chat-log { height:300px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; padding:14px;
-    background:var(--surface); display:flex; flex-direction:column; gap:10px; }
-  .msg { max-width:86%; padding:9px 13px; border-radius:9px; font-size:.9rem; white-space:pre-wrap; line-height:1.5; }
-  .msg.user { align-self:flex-end; background:linear-gradient(120deg,#22c3a6,#1aa38b); color:#04110d; font-weight:500; }
-  .msg.bot { align-self:flex-start; border:1px solid var(--border-2); color:var(--text); background:var(--surface-2); }
-  .msg.sys { align-self:center; color:var(--muted); font-size:.8rem; font-family:'IBM Plex Mono',monospace; }
-  .chat-input-row { display:flex; gap:8px; margin-top:12px; }
-  .chat-input-row input { flex:1; }
-  .btn { font-family:'IBM Plex Mono',monospace; font-size:.82rem; font-weight:600; letter-spacing:.03em;
-    border:1px solid var(--border-2); background:var(--surface-2); color:var(--muted); border-radius:4px; padding:9px 14px; cursor:pointer; transition:all .15s; }
-  .btn:hover { border-color:var(--accent); color:var(--text); }
-  .btn.primary { background:linear-gradient(120deg,#22c3a6,#1aa38b); color:#04110d; border:none; font-weight:700; }
-
-  /* FOOTER */
-  footer { border-top:1px solid var(--border); text-align:center; padding:44px 24px 90px; color:var(--muted); font-size:.85rem; }
-  .devbar { position:fixed; bottom:0; left:0; right:0; z-index:200; padding:9px 20px;
-    background:rgba(8,11,16,.95); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-    border-top:1px solid var(--border); display:flex; align-items:center; justify-content:center; gap:14px;
-    font-family:'IBM Plex Mono',monospace; font-size:.74rem; color:var(--muted); flex-wrap:wrap; }
-  .devbar .nm { color:var(--text); font-weight:600; } .devbar .sep { color:var(--border-2); }
-  .table-scroll { overflow-x:auto; }
+  /* COLOPHON */
+  .colophon{border-top:2px solid var(--ink);padding:26px 0 8px;font-family:var(--mono);font-size:.72rem;color:var(--ink-2);letter-spacing:.04em}
+  .colophon .nm{color:var(--ink);font-weight:600}
+  .foot-space{height:60px}
+  .fn{font-family:var(--mono);font-size:.72rem;color:var(--faint);line-height:1.7;margin-top:10px}
+  .fn sup{color:var(--red)}
 </style>
 </head>
 <body>
+<div class="sheet">
+<div class="pad">
 
-<nav>
-  <a class="logo" href="#top"><span class="logo-dot"></span>PharmaWatch</a>
-  <div class="links">
-    <a class="nl" href="#data">Data</a>
-    <a class="nl" href="#pipeline">Pipeline</a>
-    <a class="nl" href="#risk">Risk</a>
-    <a class="nl" href="#explorer">Explorer</a>
-    <a class="nl" href="#research">Research</a>
-    <a class="nl" href="#model">Model</a>
-    <a class="nl" href="#agent">Agent</a>
+  <!-- MASTHEAD -->
+  <div class="masthead">
+    <div class="mast-top">
+      <div class="brand"><span class="sq"></span>PharmaWatch</div>
+      <div class="docno">DOSSIER No. PW-2026-08<br>DRUG SAFETY INTELLIGENCE</div>
+    </div>
+    <h1 class="mast-title">Drug Safety<br>Dossier</h1>
+    <div class="mast-sub">Adverse-event risk · research · sentiment — synthesised per drug</div>
+    <div class="stamp" id="stamp">Not Medical<br>Advice</div>
+    <hr class="rule-double" />
+    <div class="meta-line" id="metaLine">loading record…</div>
   </div>
-  <span class="tag">Portfolio Project</span>
-</nav>
-
-<div id="top" class="hero">
-  <div class="badge">Data Engineering · ML · GenAI</div>
-  <h1>Know a drug's <span class="grad">real risk</span>.<br>For your body.</h1>
-  <p class="lede">An end-to-end pipeline that scores adverse-event risk for any medication from
-     FDA FAERS, PubMed, OpenFDA & Reddit — explains it with SHAP, personalizes it to your
-     profile, and answers follow-ups with a grounded AI agent.</p>
-  <div class="chips" id="heroChips"></div>
-  <div class="data-flag" id="dataFlag">loading…</div>
 </div>
 
-<div class="statbar">
-  <div class="inner" id="statbar"></div>
+<div class="indexbar">
+  <a href="#abstract">§00 Abstract</a>
+  <a href="#overview">§01 Cohort</a>
+  <a href="#sources">§02 Sources</a>
+  <a href="#risk">§03 Risk Register</a>
+  <a href="#monograph">§04 Monograph</a>
+  <a href="#evidence">§05 Evidence</a>
+  <a href="#models">§06 Models</a>
+  <a href="#provenance">§07 Provenance</a>
+  <a href="#inquiry">§08 Inquiry</a>
 </div>
 
-<!-- PROBLEM -->
-<section id="problem" class="narrative">
-  <div class="section-label">The Problem</div>
-  <h2>Every drug's risk is buried across a dozen datasets.</h2>
-  <p>When you're prescribed a medication, the signals that actually tell you how risky it is
-     for <strong>you</strong> live in separate silos: the FDA's raw adverse-event reports,
-     decades of PubMed research, structured drug labels, and thousands of real patient
-     conversations. None of them talk to each other, and none of them are tuned to your age,
-     sex, or habits.</p>
-  <p>PharmaWatch joins all four into a single per-drug profile, trains four gradient-boosted
-     models to score <strong>serious reactions, hospitalization, death, and disability</strong>,
-     and layers a transparent personalization pass on top — then lets you interrogate the
-     result in plain language. Everything below runs from one pipeline.</p>
-</section>
+<div class="pad">
 
-<!-- DATA SOURCES -->
-<section id="data">
-  <div class="section-label">The Data</div>
-  <h2>Four Sources. One Profile.</h2>
-  <p class="subtitle">Each source captures a different slice of drug risk — regulatory signal,
-     peer-reviewed evidence, official labelling, and lived patient experience. All public, all reproducible.</p>
-  <div class="grid-3" id="sources"></div>
-</section>
+  <!-- ABSTRACT -->
+  <section id="abstract">
+    <div class="sec-head"><span class="sec-no">§00</span><span class="sec-title">Abstract</span></div>
+    <p class="abstract"><span class="drop">P</span>harmaWatch compiles the scattered evidence on a
+      medication's real-world risk — the FDA's adverse-event reports, the peer-reviewed literature,
+      the official label, and what patients actually say — into a single per-drug safety record. Four
+      gradient-boosted models score serious reactions, hospitalization, death and disability; a
+      transparent pass adjusts them to the reader's own profile; and a grounded agent answers the
+      follow-up questions. Every figure below is produced by one reproducible pipeline.</p>
+  </section>
 
-<!-- PIPELINE -->
-<section id="pipeline">
-  <div class="section-label">The Architecture</div>
-  <h2>Raw APIs → Lakehouse → Models → Agent.</h2>
-  <p class="subtitle">A multi-cloud lakehouse pipeline: Kafka + Airflow ingestion, a Great Expectations
-     quality gate, Apache Iceberg on S3, Scala Spark transforms on Databricks, a switchable Snowflake/BigQuery
-     warehouse, dbt marts, LightGBM + MLflow, and a ChromaDB-backed RAG agent — served through FastAPI.</p>
-  <div class="stages" id="stages"></div>
-</section>
+  <!-- COHORT / KEY FIGURES -->
+  <section id="overview">
+    <div class="sec-head"><span class="sec-no">§01</span><span class="sec-title">Cohort Overview</span></div>
+    <p class="sec-note">Key figures for the tracked specimen set. Counts reflect the current pipeline run.</p>
+    <table class="keyfig"><tbody id="keyfig"></tbody></table>
+    <div class="chips" id="heroChips"></div>
+  </section>
 
-<!-- RISK OVERVIEW -->
-<section id="risk">
-  <div class="section-label">Risk Overview</div>
-  <h2>Which drugs carry the most serious risk?</h2>
-  <p class="subtitle">Model-scored serious-reaction risk across the tracked drugs, and the full
-     outcome matrix — serious, hospitalization, death, and disability — normalized per column so every
-     outcome is comparable.</p>
-  <div class="grid-2">
-    <div class="card"><h3>Serious reaction risk by drug</h3><div id="chart-rank" class="chart"></div></div>
-    <div class="card"><h3>Risk matrix — outcome × drug</h3><div id="chart-matrix" class="chart"></div></div>
-  </div>
-</section>
+  <!-- SOURCES -->
+  <section id="sources">
+    <div class="sec-head"><span class="sec-no">§02</span><span class="sec-title">Data Sources</span></div>
+    <p class="sec-note">Four public sources, each a different slice of drug risk — regulatory signal,
+      peer-reviewed evidence, official labelling, and lived patient experience.</p>
+    <div class="table-wrap"><table class="ledger">
+      <thead><tr><th>Source</th><th>Role</th><th class="r">Records</th></tr></thead>
+      <tbody id="sourcesBody"></tbody>
+    </table></div>
+  </section>
 
-<!-- EXPLORER -->
-<section id="explorer">
-  <div class="section-label">Drug Explorer</div>
-  <h2>Break down any drug.</h2>
-  <p class="subtitle">Pick a drug to see its four risk scores, what's driving them (SHAP), the reaction
-     breakdown, and who's affected — plus a live personalization if you connect the API in the Agent section.</p>
-  <div class="card">
-    <div class="explorer-head">
-      <select id="drugSelect" aria-label="Select drug"></select>
-      <span class="name-lg" id="detailName"></span>
-      <span class="pill" id="riskPill"></span>
-      <span class="tag" id="warnTag"></span>
+  <!-- RISK REGISTER -->
+  <section id="risk">
+    <div class="sec-head"><span class="sec-no">§03</span><span class="sec-title">Risk Register</span></div>
+    <p class="sec-note">Model-scored serious-reaction risk across the cohort, and the full outcome
+      matrix — normalised per column so every outcome is comparable at a glance.</p>
+    <div class="figs">
+      <div><div class="figure"><div id="chart-rank" class="chart"></div></div>
+        <div class="figcap"><b>Fig. 1</b> — Serious-reaction risk by drug (click a bar to open its monograph)</div></div>
+      <div><div class="figure"><div id="chart-matrix" class="chart"></div></div>
+        <div class="figcap"><b>Fig. 2</b> — Outcome × drug risk matrix, column-normalised</div></div>
     </div>
-    <div class="tiles" id="tiles"></div>
-    <div class="grid-2" style="margin-top:6px">
-      <div class="card" style="background:var(--surface)"><h3>Risk factor contributions (SHAP)</h3><div id="chart-shap" class="chart-sm"></div></div>
-      <div class="card" style="background:var(--surface)"><h3>Adverse reports by age group</h3><div id="chart-age" class="chart-sm"></div></div>
-    </div>
-    <div class="grid-2" style="margin-top:18px">
-      <div class="card" style="background:var(--surface)"><h3>Top reactions</h3><div id="chart-react-drug" class="chart-sm"></div></div>
+  </section>
+
+  <!-- MONOGRAPH / EXPLORER -->
+  <section id="monograph">
+    <div class="sec-head"><span class="sec-no">§04</span><span class="sec-title">Drug Monograph</span></div>
+    <p class="sec-note">Select a specimen for its full record: the four risk readouts, the factors
+      driving them (SHAP), who is affected, and the reactions reported.</p>
+    <div class="specimen">Specimen &nbsp;
+      <select id="drugSelect" aria-label="Select drug"></select></div>
+    <div class="mono-wrap">
       <div>
-        <div class="kpis" id="kpis"></div>
-        <h3 style="margin:18px 0 8px;font-size:.86rem">Known interactions</h3>
+        <div class="facts">
+          <div class="facts-hd">
+            <div class="facts-t" id="mono-name">—</div>
+            <div class="facts-s">PharmaWatch Risk Monograph</div>
+          </div>
+          <div class="facts-bar"></div>
+          <div id="facts-body"></div>
+        </div>
+        <div id="riskStamp"></div>
+        <h3 style="font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:18px 0 6px">Known interactions</h3>
         <div class="tags" id="interTags"></div>
       </div>
+      <div class="figs" style="grid-template-columns:1fr">
+        <div><div class="figure"><div id="chart-shap" class="chart-sm"></div></div>
+          <div class="figcap"><b>Fig. 3</b> — Risk-factor contributions (SHAP): red raises, blue lowers</div></div>
+        <div class="figs">
+          <div><div class="figure"><div id="chart-age" class="chart-sm"></div></div>
+            <div class="figcap"><b>Fig. 4</b> — Adverse reports by age group</div></div>
+          <div><div class="figure"><div id="chart-react-drug" class="chart-sm"></div></div>
+            <div class="figcap"><b>Fig. 5</b> — Top reported reactions</div></div>
+        </div>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- RESEARCH & COMMUNITY -->
-<section id="research">
-  <div class="section-label">Research & Community</div>
-  <h2>Where evidence meets lived experience.</h2>
-  <p class="subtitle">Peer-reviewed research risk consensus versus real-world community concern — bubble
-     size is model serious-risk. And the reactions patients report most across all tracked drugs.</p>
-  <div class="grid-2">
-    <div class="card"><h3>Research consensus vs. community concern</h3><div id="chart-scatter" class="chart"></div></div>
-    <div class="card"><h3>Most-reported reactions (all drugs)</h3><div id="chart-reactions" class="chart"></div></div>
-  </div>
-</section>
+  <!-- EVIDENCE -->
+  <section id="evidence">
+    <div class="sec-head"><span class="sec-no">§05</span><span class="sec-title">Evidence &amp; Sentiment</span></div>
+    <p class="sec-note">Peer-reviewed research consensus against real-world community concern (marker
+      size is model serious-risk), and the reactions patients report most across every tracked drug.</p>
+    <div class="figs">
+      <div><div class="figure"><div id="chart-scatter" class="chart"></div></div>
+        <div class="figcap"><b>Fig. 6</b> — Research consensus vs. community concern</div></div>
+      <div><div class="figure"><div id="chart-reactions" class="chart"></div></div>
+        <div class="figcap"><b>Fig. 7</b> — Most-reported reactions, pooled across cohort</div></div>
+    </div>
+  </section>
 
-<!-- MODEL -->
-<section id="model">
-  <div class="section-label">The Models</div>
-  <h2>Four classifiers, tracked in MLflow.</h2>
-  <p class="subtitle">LightGBM classifiers for each outcome, AUC-gated and promoted to Production
-     automatically. SHAP feature importance, aggregated across drugs, shows what the models lean on.</p>
-  <div class="grid-2">
-    <div class="card"><h3>Model performance (ROC AUC)</h3><div id="chart-auc" class="chart"></div></div>
-    <div class="card"><h3>Feature importance (mean |SHAP|)</h3><div id="chart-importance" class="chart"></div></div>
-  </div>
-</section>
+  <!-- MODELS -->
+  <section id="models">
+    <div class="sec-head"><span class="sec-no">§06</span><span class="sec-title">Model Performance</span></div>
+    <p class="sec-note">Four LightGBM classifiers, one per outcome, AUC-gated and promoted to Production
+      in MLflow. Feature importance is mean |SHAP| aggregated across the cohort.</p>
+    <div class="figs">
+      <div><div class="figure"><div id="chart-auc" class="chart"></div></div>
+        <div class="figcap"><b>Fig. 8</b> — Classifier discrimination (ROC AUC)</div></div>
+      <div><div class="figure"><div id="chart-importance" class="chart"></div></div>
+        <div class="figcap"><b>Fig. 9</b> — Feature importance (mean |SHAP|)</div></div>
+    </div>
+  </section>
 
-<!-- PIPELINE LOG -->
-<section id="runs">
-  <div class="section-label">Pipeline Runs</div>
-  <h2>It runs itself, daily.</h2>
-  <p class="subtitle">A GitHub Actions workflow refreshes this dashboard every day and commits it back —
-     the same self-updating pattern the whole pipeline uses. Recent runs:</p>
-  <div class="card" style="padding:6px 0">
-    <div class="runrow h"><div>Date</div><div>Status</div><div class="hide-sm">Duration</div><div class="hide-sm">Rows</div><div>Stages</div></div>
-    <div id="runlog"></div>
-  </div>
-</section>
+  <!-- PROVENANCE -->
+  <section id="provenance">
+    <div class="sec-head"><span class="sec-no">§07</span><span class="sec-title">Provenance</span></div>
+    <p class="sec-note">A ten-stage lakehouse pipeline, re-run daily by GitHub Actions, which commits
+      this record back to itself. The architecture, then the recent run ledger.</p>
+    <div class="spec" id="spec"></div>
+    <h3 style="font-family:var(--mono);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);margin:26px 0 8px">Recent pipeline runs</h3>
+    <div class="table-wrap"><table class="ledger">
+      <thead><tr><th>Date</th><th>Status</th><th class="r">Duration</th><th class="r">Rows</th><th>Stages</th></tr></thead>
+      <tbody id="runlog"></tbody>
+    </table></div>
+  </section>
 
-<!-- AGENT -->
-<section id="agent">
-  <div class="section-label">AI Agent</div>
-  <h2>Ask it anything about your meds.</h2>
-  <p class="subtitle">A Groq + Llama 3 agent that reasons over the model scores, PubMed research, Reddit
-     sentiment, and FDA labels — personalized to the profile below. Connect the live API to chat.</p>
-  <div class="card">
+  <!-- INQUIRY / AGENT -->
+  <section id="inquiry" class="consult">
+    <div class="sec-head"><span class="sec-no">§08</span><span class="sec-title">Inquiry Desk</span></div>
+    <p class="sec-note">A Groq + Llama 3 agent that reasons over the model scores, PubMed research,
+      Reddit sentiment and FDA labels for the selected specimen (<b id="chatDrug">—</b>), personalised
+      to the profile below. Connect the live API to consult it.</p>
     <div class="api-row">
       <span id="apiStatus" class="api-off">● backend not connected</span>
       <input type="text" id="apiInput" placeholder="https://your-api.onrender.com" style="flex:1;min-width:220px" />
       <button class="btn" id="apiSave">Save API URL</button>
     </div>
     <div class="chat-profile">
-      <label>Age <input type="number" id="chatAge" value="30" style="width:66px" /></label>
-      <label>Sex
-        <select id="chatSex"><option value=""></option><option value="female">female</option><option value="male">male</option><option value="other">other</option></select>
-      </label>
-      <label>Alcohol
-        <select id="chatAlcohol"><option value="none">none</option><option value="moderate">moderate</option><option value="heavy">heavy</option></select>
-      </label>
+      <label>Age <input type="number" id="chatAge" value="30" style="width:64px" /></label>
+      <label>Sex <select id="chatSex"><option value=""></option><option value="female">female</option><option value="male">male</option><option value="other">other</option></select></label>
+      <label>Alcohol <select id="chatAlcohol"><option value="none">none</option><option value="moderate">moderate</option><option value="heavy">heavy</option></select></label>
       <label><input type="checkbox" id="chatSmoker" /> smoker</label>
     </div>
     <div class="chat-log" id="chatLog"></div>
     <div class="chat-input-row">
       <input type="text" id="chatInput" placeholder="e.g. Is this safe for me given my profile?" />
-      <button class="btn primary" id="chatSend">Send</button>
+      <button class="btn red" id="chatSend">Send</button>
     </div>
-    <p style="color:var(--muted);font-size:.8rem;margin-top:10px">
-      Answers about the selected drug (<b id="chatDrug">—</b>) using FAERS risk scores, PubMed, Reddit &
-      FDA labels. See <a href="https://github.com/oscar-melendez77/PharmaWatch/blob/main/DEPLOY.md">DEPLOY.md</a>
-      for the one-key demo API.</p>
-  </div>
-</section>
+    <p class="fn"><sup>†</sup> One-key demo API in
+      <a href="https://github.com/oscar-melendez77/PharmaWatch/blob/main/DEPLOY.md">DEPLOY.md</a>.
+      Answers are grounded in the record above.</p>
+  </section>
 
-<!-- INSIGHTS + TECH -->
-<section id="insights">
-  <div class="section-label">Takeaways</div>
-  <h2>What the pipeline surfaces.</h2>
-  <div class="grid-3" id="insights" style="margin-bottom:36px"></div>
-  <div class="section-label">Built with</div>
-  <h2 style="margin-bottom:18px">The stack.</h2>
-  <div class="tech" id="tech"></div>
-</section>
-
-<footer id="footer"></footer>
-<div class="devbar" id="devbar"></div>
+  <!-- COLOPHON -->
+  <div class="colophon" id="colophon"></div>
+  <div class="fn" id="footnotes"></div>
+</div>
+</div>
+<div class="foot-space"></div>
 
 <script>
-const C = {
-  bg:'#080b10', surface:'#0e131a', surface2:'#141b24', border:'#202a36', border2:'#2e3b4a',
-  text:'#e6edf3', muted:'#8593a1', accent:'#22c3a6', accent2:'#38bdf8',
-  low:'#3fb950', medium:'#d6a020', high:'#f85149'
-};
-const RISK = { LOW:C.low, MEDIUM:C.medium, HIGH:C.high };
-const FONT = "'Space Grotesk',sans-serif";
-const CFG = { displayModeBar:false, responsive:true };
-let DATA = null, current = null;
+const INK='#1c1a15', INK2='#57524a', FAINT='#8b8676', RULE='#d3ccba', LEDGER='#e9e3d1',
+      RED='#b5372b', OCHRE='#a9781f', GREEN='#4e6b46', SLATE='#3f5d7a', PAPER='#faf8f1';
+const RISK={LOW:GREEN,MEDIUM:OCHRE,HIGH:RED};
+const MONO="'IBM Plex Mono',monospace";
+const CFG={displayModeBar:false,responsive:true};
+let DATA=null,current=null;
 
-function layout(o) {
+function layout(o){
   return Object.assign({
     paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
-    font:{ family:FONT, color:C.muted, size:12 },
-    margin:{ l:112, r:18, t:8, b:38 },
-    xaxis:{ gridcolor:C.border, zerolinecolor:C.border2, linecolor:C.border, tickfont:{size:11} },
-    yaxis:{ gridcolor:'rgba(0,0,0,0)', zerolinecolor:C.border2, linecolor:C.border, tickfont:{size:11} },
-    showlegend:false, hoverlabel:{ font:{ family:FONT } }
-  }, o || {});
+    font:{family:MONO,color:INK2,size:11},
+    margin:{l:112,r:16,t:8,b:34},
+    xaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,linecolor:'rgba(0,0,0,0)',tickfont:{size:10},ticks:'outside',tickcolor:RULE},
+    yaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,linecolor:'rgba(0,0,0,0)',tickfont:{size:10}},
+    showlegend:false, hoverlabel:{font:{family:MONO,size:11},bgcolor:PAPER,bordercolor:INK}
+  }, o||{});
 }
-const fmt = n => n >= 1000 ? (n/1000).toFixed(n>=10000?0:1)+'k' : String(n);
+const fmt=n=> n>=1000 ? (n/1000).toFixed(n>=10000?0:1)+'k' : String(n);
 
-/* ---------- STATIC SECTIONS ---------- */
-function renderStatbar() {
-  const s = DATA.stats;
-  const cells = [
-    ['drugs','Drugs analyzed', C.accent],
-    ['adverse_reports','Adverse-event reports', C.accent2],
-    ['research_papers','Research abstracts', C.accent],
-    ['avg_auc','Avg model AUC', C.low, true],
-    ['high_risk','High-risk drugs', C.high],
-    ['data_sources','Data sources', C.accent2],
+/* ---- TEXT SECTIONS ---- */
+function renderKeyfig(){
+  const s=DATA.stats;
+  const rows=[
+    ['drugs', s.drugs, 'specimens tracked', false],
+    ['reports', fmt(s.adverse_reports), 'FAERS adverse-event reports', false],
+    ['papers', fmt(s.research_papers), 'PubMed abstracts indexed', false],
+    ['auc', s.avg_auc.toFixed(3), 'mean model discrimination (AUC)', false],
+    ['high', s.high_risk, 'specimens flagged HIGH risk', true],
+    ['sources', s.data_sources, 'public data sources joined', false],
   ];
-  document.getElementById('statbar').innerHTML = cells.map(([k,l,col,isAuc]) => {
-    const raw = s[k];
-    const v = isAuc ? raw.toFixed(3) : fmt(raw);
-    return `<div class="stat"><div class="v" style="color:${col}">${v}</div><div class="l">${l}</div></div>`;
-  }).join('');
+  document.getElementById('keyfig').innerHTML = rows.map(([k,v,d,red])=>
+    `<tr><td class="kf-v ${red?'red':''}">${v}</td><td class="kf-l">${k}</td><td class="kf-d">${d}</td></tr>`).join('');
 }
-
-function renderSources() {
-  document.getElementById('sources').innerHTML = DATA.source_stats.map(s => `
-    <div class="src">
-      <div class="head"><span class="emoji">${s.icon}</span>
-        <div><div class="name">${s.source}</div><div class="kind">${s.unit}</div></div></div>
-      <p>${s.note}</p>
-      <div class="rec">${s.records.toLocaleString()} ${s.unit}</div>
-    </div>`).join('');
+function renderSources(){
+  document.getElementById('sourcesBody').innerHTML = DATA.source_stats.map(s=>`
+    <tr><td><span class="src-n">${s.icon} ${s.source}</span><div class="src-role">${s.unit}</div></td>
+    <td>${s.note}</td><td class="r">${s.records.toLocaleString()}</td></tr>`).join('');
 }
-
-const STAGES = [
-  ['01','Terraform','AWS S3, IAM, Glue, BigQuery & Snowflake as code'],
+const STAGES=[
+  ['01','Terraform','AWS S3, IAM, Glue, BigQuery &amp; Snowflake, as code'],
   ['02','Kafka + Airflow','Reddit streaming + FAERS/PubMed/OpenFDA batch DAGs'],
-  ['03','Great Expectations','Quality gate halts the run on bad batches'],
-  ['04','Apache Iceberg','Raw + clean table state on S3 via Glue Catalog'],
+  ['03','Great Expectations','Quality gate halts the run on a bad batch'],
+  ['04','Apache Iceberg','Raw &amp; clean table state on S3 via Glue Catalog'],
   ['05','Spark (Scala)','Type-safe transforms on Databricks'],
   ['06','Warehouse','Snowflake ↔ BigQuery, auto-switch after trial'],
   ['07','dbt','Marts — drug_master_profile joins everything'],
-  ['08','LightGBM + MLflow','4 classifiers, AUC-gated promotion'],
-  ['09','ChromaDB + RAG','PubMed vectors + LangChain/Groq agent'],
-  ['10','FastAPI + Pages','Serving API + this self-updating dashboard'],
+  ['08','LightGBM + MLflow','Four classifiers, AUC-gated promotion'],
+  ['09','ChromaDB + RAG','PubMed vectors + LangChain / Groq agent'],
+  ['10','FastAPI + Pages','Serving API &amp; this self-updating record'],
 ];
-function renderStages() {
-  document.getElementById('stages').innerHTML = STAGES.map(([n,t,d]) =>
-    `<div class="stage"><div class="n">STAGE ${n}</div><div class="t">${t}</div><div class="d">${d}</div></div>`).join('');
+function renderSpec(){
+  document.getElementById('spec').innerHTML = STAGES.map(([n,t,d])=>
+    `<div class="spec-row"><span class="sn">${n}</span><span class="st">${t}</span><span class="sd">${d}</span></div>`).join('');
 }
-
-const TECH = ['Terraform','AWS S3','Glue Catalog','Snowflake','BigQuery','Confluent Kafka','Airflow',
-  'Apache Iceberg','Great Expectations','Spark / Scala','Databricks','dbt','LightGBM','MLflow','SHAP',
-  'ChromaDB','LangChain','Groq / Llama 3','FastAPI','Gradio','GitHub Actions'];
-function renderTech() {
-  document.getElementById('tech').innerHTML = TECH.map(t => `<span class="p">${t}</span>`).join('');
-}
-
-function renderInsights() {
-  const p = DATA.profiles, s = DATA.stats;
-  const worst = p[0];
-  const topReact = DATA.reaction_leaderboard[0];
-  const bestModel = [...DATA.model_metrics].sort((a,b)=>b.auc-a.auc)[0];
-  const cards = [
-    ['a','Highest serious risk', worst.drug_name + ' · ' + worst.serious_reaction_pct.toFixed(0) + '%',
-      'Leads the cohort for model-scored serious-reaction risk, driven by ' + worst.top_risk_factor.replace(/_/g,' ') + '.'],
-    ['b','Most-reported reaction', topReact.reaction,
-      'The single most frequently reported adverse reaction aggregated across all ' + s.drugs + ' tracked drugs.'],
-    ['c','Best-performing model', bestModel.model + ' · AUC ' + bestModel.auc.toFixed(3),
-      'The ' + bestModel.model.toLowerCase() + ' classifier separates outcomes best; all four average ' + s.avg_auc.toFixed(3) + ' AUC.'],
-  ];
-  document.getElementById('insights').innerHTML = cards.map(([c,k,h,pt]) =>
-    `<div class="insight ${c}"><div class="k">${k}</div><div class="h">${h}</div><div class="p">${pt}</div></div>`).join('');
-}
-
-function renderRuns() {
-  document.getElementById('runlog').innerHTML = DATA.pipeline_runs.map(r => {
-    const cls = r.status === 'ok' ? 'ok' : (r.status === 'error' ? 'err' : 'run');
-    const label = r.status === 'ok' ? '● ok' : (r.status === 'error' ? '● failed' : '● running');
-    const mods = r.stages.map(m => `<span class="modpill">${m}</span>`).join('');
-    return `<div class="runrow"><div>${r.date}</div><div class="${cls}">${label}</div>
-      <div class="hide-sm">${Math.floor(r.duration_s/60)}m ${r.duration_s%60}s</div>
-      <div class="hide-sm">${r.rows.toLocaleString()}</div><div class="modpills">${mods}</div></div>`;
+function renderRuns(){
+  document.getElementById('runlog').innerHTML = DATA.pipeline_runs.map(r=>{
+    const cls=r.status==='ok'?'tick':(r.status==='error'?'fail':'run');
+    const lab=r.status==='ok'?'● complete':(r.status==='error'?'● failed':'● running');
+    return `<tr><td>${r.date}</td><td class="${cls}">${lab}</td>
+      <td class="r">${Math.floor(r.duration_s/60)}m ${r.duration_s%60}s</td>
+      <td class="r">${r.rows.toLocaleString()}</td>
+      <td style="color:var(--faint);font-size:.72rem">${r.stages.join(' · ')}</td></tr>`;
   }).join('');
 }
 
-/* ---------- CHARTS ---------- */
-function chartRank() {
-  const p = [...DATA.profiles].sort((a,b)=>a.serious_reaction_pct-b.serious_reaction_pct);
-  Plotly.newPlot('chart-rank', [{
-    type:'bar', orientation:'h',
-    y:p.map(d=>d.drug_name), x:p.map(d=>d.serious_reaction_pct),
-    marker:{ color:p.map(d=>RISK[d.risk_label]||C.accent) },
-    text:p.map(d=>d.serious_reaction_pct.toFixed(1)+'%'), textposition:'auto',
-    insidetextfont:{ color:'#04110d', family:FONT }, cliponaxis:false,
+/* ---- CHARTS ---- */
+function chartRank(){
+  const p=[...DATA.profiles].sort((a,b)=>a.serious_reaction_pct-b.serious_reaction_pct);
+  Plotly.newPlot('chart-rank',[{
+    type:'bar',orientation:'h',y:p.map(d=>d.drug_name),x:p.map(d=>d.serious_reaction_pct),
+    marker:{color:p.map(d=>RISK[d.risk_label]||INK),line:{color:INK,width:1}},
+    text:p.map(d=>d.serious_reaction_pct.toFixed(1)+'%'),textposition:'outside',
+    outsidetextfont:{color:INK,family:MONO,size:10},cliponaxis:false,
     hovertemplate:'%{y}: %{x:.1f}% serious<extra></extra>'
-  }], layout({ xaxis:{ gridcolor:C.border, zerolinecolor:C.border2, ticksuffix:'%', range:[0,100] } }), CFG);
-  document.getElementById('chart-rank').on('plotly_click', e => selectDrug(e.points[0].y));
+  }],layout({margin:{l:92,r:44,t:6,b:30},xaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,range:[0,105],ticksuffix:'%',tickfont:{size:10},ticks:'outside',tickcolor:RULE}}),CFG);
+  document.getElementById('chart-rank').on('plotly_click',e=>{selectDrug(e.points[0].y);document.getElementById('monograph').scrollIntoView({behavior:'smooth'});});
 }
-
-function chartMatrix() {
-  const drugs = DATA.profiles.map(d=>d.drug_name);
-  const cols = [['serious_reaction_pct','Serious'],['hospitalization_pct','Hospital'],['death_pct','Death'],['disability_pct','Disability']];
-  const raw = cols.map(([k]) => DATA.profiles.map(d=>d[k]));       // [outcome][drug]
-  // normalize per outcome column for colour; keep raw % as text
-  const z = drugs.map((_,di)=> cols.map((_,ci)=>{
-    const arr = raw[ci]; const mn=Math.min(...arr), mx=Math.max(...arr);
-    return mx===mn ? 0.5 : (raw[ci][di]-mn)/(mx-mn);
-  }));
-  const text = drugs.map((_,di)=> cols.map((_,ci)=> raw[ci][di].toFixed(1)+'%'));
-  Plotly.newPlot('chart-matrix', [{
-    type:'heatmap', x:cols.map(c=>c[1]), y:drugs, z:z,
-    text:text, texttemplate:'%{text}', textfont:{ size:11, color:C.text, family:FONT },
-    colorscale:[[0,'#123833'],[0.4,'#1f8f7d'],[0.7,'#d6a020'],[1,'#f85149']], showscale:false,
-    xgap:3, ygap:3, hovertemplate:'%{y} · %{x}: %{text}<extra></extra>'
-  }], layout({ margin:{l:96,r:12,t:8,b:34}, yaxis:{ automargin:true } }), CFG);
+function chartMatrix(){
+  const drugs=DATA.profiles.map(d=>d.drug_name);
+  const cols=[['serious_reaction_pct','Serious'],['hospitalization_pct','Hosp.'],['death_pct','Death'],['disability_pct','Disab.']];
+  const raw=cols.map(([k])=>DATA.profiles.map(d=>d[k]));
+  const z=drugs.map((_,di)=>cols.map((_,ci)=>{const a=raw[ci],mn=Math.min(...a),mx=Math.max(...a);return mx===mn?.5:(raw[ci][di]-mn)/(mx-mn);}));
+  const text=drugs.map((_,di)=>cols.map((_,ci)=>raw[ci][di].toFixed(1)));
+  Plotly.newPlot('chart-matrix',[{
+    type:'heatmap',x:cols.map(c=>c[1]),y:drugs,z:z,text:text,texttemplate:'%{text}',
+    textfont:{size:10,family:MONO,color:INK},
+    colorscale:[[0,'#f1ebda'],[.5,'#dd9b7e'],[1,RED]],showscale:false,xgap:2,ygap:2,
+    hovertemplate:'%{y} · %{x}: %{text}%<extra></extra>'
+  }],layout({margin:{l:92,r:10,t:6,b:28},xaxis:{side:'top',tickfont:{size:10}},yaxis:{automargin:true}}),CFG);
 }
-
-function chartShap(d) {
-  const s = [...d.shap_values].sort((a,b)=>Math.abs(a.contribution)-Math.abs(b.contribution)).slice(-8);
-  Plotly.newPlot('chart-shap', [{
-    type:'bar', orientation:'h',
-    y:s.map(x=>x.feature.replace(/_/g,' ')), x:s.map(x=>x.contribution),
-    marker:{ color:s.map(x=>x.contribution>=0?C.high:C.accent) },
+function chartShap(d){
+  const s=[...d.shap_values].sort((a,b)=>Math.abs(a.contribution)-Math.abs(b.contribution)).slice(-8);
+  Plotly.newPlot('chart-shap',[{
+    type:'bar',orientation:'h',y:s.map(x=>x.feature.replace(/_/g,' ')),x:s.map(x=>x.contribution),
+    marker:{color:s.map(x=>x.contribution>=0?RED:SLATE),line:{color:INK,width:1}},
     hovertemplate:'%{y}: %{x:.3f}<extra></extra>'
-  }], layout({ margin:{l:150,r:14,t:6,b:34}, xaxis:{ gridcolor:C.border, zerolinecolor:C.border2,
-    title:{ text:'← lowers   ·   raises →', font:{ size:10, color:C.muted } } } }), CFG);
+  }],layout({margin:{l:150,r:14,t:6,b:30},xaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,ticks:'outside',tickcolor:RULE}}),CFG);
 }
-
-function chartAge(d) {
-  const buckets = Object.keys(d.age_distribution);
-  Plotly.newPlot('chart-age', [{
-    type:'bar', x:buckets, y:buckets.map(b=>d.age_distribution[b]),
-    marker:{ color:C.accent2 }, text:buckets.map(b=>d.age_distribution[b].toFixed(0)+'%'),
-    textposition:'auto', insidetextfont:{ color:'#04110d', family:FONT },
-    hovertemplate:'%{x}: %{y:.1f}% of reports<extra></extra>'
-  }], layout({ margin:{l:44,r:14,t:6,b:34}, yaxis:{ gridcolor:C.border, ticksuffix:'%' } }), CFG);
+function chartAge(d){
+  const b=Object.keys(d.age_distribution);
+  Plotly.newPlot('chart-age',[{
+    type:'bar',x:b,y:b.map(k=>d.age_distribution[k]),
+    marker:{color:INK,line:{color:INK,width:1}},
+    text:b.map(k=>d.age_distribution[k].toFixed(0)+'%'),textposition:'outside',outsidetextfont:{color:INK,family:MONO,size:10},cliponaxis:false,
+    hovertemplate:'%{x}: %{y:.1f}%<extra></extra>'
+  }],layout({margin:{l:38,r:12,t:16,b:28},yaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,ticksuffix:'%'}}),CFG);
 }
-
-function chartReactDrug(d) {
-  const r = [...d.top_5_reactions].sort((a,b)=>a.frequency_pct-b.frequency_pct);
-  Plotly.newPlot('chart-react-drug', [{
-    type:'bar', orientation:'h', y:r.map(x=>x.reaction), x:r.map(x=>x.frequency_pct),
-    marker:{ color:C.accent }, text:r.map(x=>x.frequency_pct.toFixed(1)+'%'),
-    textposition:'auto', insidetextfont:{ color:'#04110d', family:FONT }, cliponaxis:false,
+function chartReactDrug(d){
+  const r=[...d.top_5_reactions].sort((a,b)=>a.frequency_pct-b.frequency_pct);
+  Plotly.newPlot('chart-react-drug',[{
+    type:'bar',orientation:'h',y:r.map(x=>x.reaction),x:r.map(x=>x.frequency_pct),
+    marker:{color:INK,line:{color:INK,width:1}},
+    text:r.map(x=>x.frequency_pct.toFixed(0)+'%'),textposition:'outside',outsidetextfont:{color:INK,family:MONO,size:10},cliponaxis:false,
     hovertemplate:'%{y}: %{x:.1f}%<extra></extra>'
-  }], layout({ margin:{l:96,r:14,t:6,b:34}, xaxis:{ gridcolor:C.border, ticksuffix:'%' } }), CFG);
+  }],layout({margin:{l:86,r:34,t:6,b:28}}),CFG);
 }
-
-function chartScatter() {
-  const rc = DATA.research_community;
-  Plotly.newPlot('chart-scatter', [{
-    type:'scatter', mode:'markers+text',
-    x:rc.map(d=>d.research), y:rc.map(d=>d.community),
-    text:rc.map(d=>d.drug), textposition:'top center', textfont:{ size:10, color:C.muted, family:FONT },
-    marker:{ size:rc.map(d=>10+d.serious/3), color:rc.map(d=>RISK[d.risk_label]||C.accent),
-      line:{ color:C.bg, width:1.5 }, opacity:.9 },
+function chartScatter(){
+  const rc=DATA.research_community;
+  Plotly.newPlot('chart-scatter',[{
+    type:'scatter',mode:'markers+text',x:rc.map(d=>d.research),y:rc.map(d=>d.community),
+    text:rc.map(d=>d.drug),textposition:'top center',textfont:{size:9,color:INK2,family:MONO},
+    marker:{size:rc.map(d=>10+d.serious/3.2),color:rc.map(d=>RISK[d.risk_label]||INK),line:{color:INK,width:1},opacity:.92},
     hovertemplate:'%{text}<br>research %{x:.0f}% · community %{y:.0f}<extra></extra>'
-  }], layout({ margin:{l:52,r:16,t:8,b:44},
-    xaxis:{ gridcolor:C.border, zerolinecolor:C.border2, title:{ text:'Research risk consensus (%)', font:{size:11,color:C.muted} } },
-    yaxis:{ gridcolor:C.border, zerolinecolor:C.border2, title:{ text:'Community concern', font:{size:11,color:C.muted} } } }), CFG);
+  }],layout({margin:{l:48,r:16,t:8,b:40},
+    xaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,ticks:'outside',tickcolor:RULE,title:{text:'RESEARCH CONSENSUS (%)',font:{size:10,color:FAINT}}},
+    yaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,ticks:'outside',tickcolor:RULE,title:{text:'COMMUNITY CONCERN',font:{size:10,color:FAINT}}}}),CFG);
 }
-
-function chartReactions() {
-  const r = [...DATA.reaction_leaderboard].sort((a,b)=>a.score-b.score);
-  Plotly.newPlot('chart-reactions', [{
-    type:'bar', orientation:'h', y:r.map(x=>x.reaction), x:r.map(x=>x.score),
-    marker:{ color:C.accent2 }, hovertemplate:'%{y}: %{x:.0f} pooled score<extra></extra>'
-  }], layout({ margin:{l:100,r:14,t:6,b:34}, xaxis:{ gridcolor:C.border } }), CFG);
+function chartReactions(){
+  const r=[...DATA.reaction_leaderboard].sort((a,b)=>a.score-b.score);
+  Plotly.newPlot('chart-reactions',[{
+    type:'bar',orientation:'h',y:r.map(x=>x.reaction),x:r.map(x=>x.score),
+    marker:{color:INK,line:{color:INK,width:1}},hovertemplate:'%{y}: %{x:.0f}<extra></extra>'
+  }],layout({margin:{l:100,r:16,t:6,b:28}}),CFG);
 }
-
-function chartAuc() {
-  const m = DATA.model_metrics;
-  Plotly.newPlot('chart-auc', [{
-    type:'bar', x:m.map(d=>d.model), y:m.map(d=>d.auc),
-    marker:{ color:[C.high,C.medium,C.accent,C.accent2] },
-    text:m.map(d=>d.auc.toFixed(3)), textposition:'auto', insidetextfont:{ color:'#04110d', family:FONT },
+function chartAuc(){
+  const m=DATA.model_metrics;
+  Plotly.newPlot('chart-auc',[{
+    type:'bar',x:m.map(d=>d.model),y:m.map(d=>d.auc),
+    marker:{color:m.map((_,i)=>i===0?RED:INK),line:{color:INK,width:1}},
+    text:m.map(d=>d.auc.toFixed(3)),textposition:'outside',outsidetextfont:{color:INK,family:MONO,size:10},cliponaxis:false,
     hovertemplate:'%{x}: AUC %{y:.3f}<extra></extra>'
-  }], layout({ margin:{l:46,r:14,t:8,b:40}, yaxis:{ gridcolor:C.border, range:[0.5,1] } }), CFG);
+  }],layout({margin:{l:40,r:12,t:18,b:36},yaxis:{gridcolor:'rgba(0,0,0,0)',zerolinecolor:INK,range:[0.5,1]}}),CFG);
+}
+function chartImportance(){
+  const f=[...DATA.feature_importance].sort((a,b)=>a.importance-b.importance);
+  Plotly.newPlot('chart-importance',[{
+    type:'bar',orientation:'h',y:f.map(x=>x.feature),x:f.map(x=>x.importance),
+    marker:{color:INK,line:{color:INK,width:1}},hovertemplate:'%{y}: %{x:.3f}<extra></extra>'
+  }],layout({margin:{l:150,r:14,t:6,b:28}}),CFG);
 }
 
-function chartImportance() {
-  const f = [...DATA.feature_importance].sort((a,b)=>a.importance-b.importance);
-  Plotly.newPlot('chart-importance', [{
-    type:'bar', orientation:'h', y:f.map(x=>x.feature), x:f.map(x=>x.importance),
-    marker:{ color:C.accent }, hovertemplate:'%{y}: %{x:.3f}<extra></extra>'
-  }], layout({ margin:{l:150,r:14,t:6,b:34}, xaxis:{ gridcolor:C.border } }), CFG);
-}
+/* ---- MONOGRAPH ---- */
+function selectDrug(name){
+  const d=DATA.profiles.find(p=>p.drug_name===name); if(!d) return;
+  current=d;
+  document.getElementById('drugSelect').value=name;
+  document.getElementById('mono-name').textContent=d.drug_name.toUpperCase();
+  document.getElementById('chatDrug').textContent=d.drug_name;
 
-/* ---------- EXPLORER ---------- */
-function selectDrug(name) {
-  const d = DATA.profiles.find(p => p.drug_name === name);
-  if (!d) return;
-  current = d;
-  document.getElementById('drugSelect').value = name;
-  document.getElementById('detailName').textContent = d.drug_name;
-  document.getElementById('chatDrug').textContent = d.drug_name;
+  document.getElementById('facts-body').innerHTML=`
+    <div class="facts-row"><span class="fl"><b>Serious reaction</b> risk</span><span class="fv red">${d.serious_reaction_pct.toFixed(1)}%</span></div>
+    <div class="facts-row"><span class="fl">Hospitalization</span><span class="fv">${d.hospitalization_pct.toFixed(1)}%</span></div>
+    <div class="facts-row"><span class="fl">Death</span><span class="fv">${d.death_pct.toFixed(1)}%</span></div>
+    <div class="facts-row thick"><span class="fl">Disability</span><span class="fv">${d.disability_pct.toFixed(1)}%</span></div>
+    <div class="facts-row"><span class="fl">Label warning severity</span><span class="fv">${d.label_warning_severity}</span></div>
+    <div class="facts-row"><span class="fl">Community concern</span><span class="fv">${d.community_concern_score.toFixed(0)}<span style="font-size:.7rem;color:var(--faint)">/100</span></span></div>
+    <div class="facts-row"><span class="fl">Research consensus</span><span class="fv">${d.research_risk_consensus.toFixed(0)}%</span></div>
+    <div class="facts-row"><span class="fl">Dependency · withdrawal</span><span class="fv">${d.dependency_mention_rate.toFixed(0)}% · ${d.withdrawal_mention_rate.toFixed(0)}%</span></div>
+    <div class="facts-row thick"><span class="fl">Adverse reports on file</span><span class="fv">${d.total_reports.toLocaleString()}</span></div>
+    <div class="facts-note">Top risk factor: <b>${d.top_risk_factor.replace(/_/g,' ')}</b>. Research papers on file: ${d.total_research_papers}.</div>`;
 
-  const rc = RISK[d.risk_label] || C.muted;
-  document.getElementById('riskPill').innerHTML =
-    `<span class="dot" style="background:${rc}"></span>${d.risk_label} RISK`;
-  document.getElementById('riskPill').style.cssText =
-    `color:${rc};background:${rc}18;border:1px solid ${rc}44;`;
-  document.getElementById('warnTag').textContent = 'Label warning: ' + d.label_warning_severity;
+  const cls=d.risk_label==='HIGH'?'':(d.risk_label==='MEDIUM'?'md':'lo');
+  document.getElementById('riskStamp').innerHTML=`<span class="riskstamp ${cls}">${d.risk_label} Risk</span>`;
 
-  const rk = d.risk_label==='HIGH'?'risk-hi':(d.risk_label==='MEDIUM'?'risk-md':'risk-lo');
-  const tiles = [
-    ['Serious', d.serious_reaction_pct], ['Hospitalization', d.hospitalization_pct],
-    ['Death', d.death_pct], ['Disability', d.disability_pct]
-  ];
-  document.getElementById('tiles').innerHTML = tiles.map(([l,v]) =>
-    `<div class="tile ${rk}"><div class="lbl">${l}</div><div class="val">${v.toFixed(1)}%</div></div>`).join('');
-
-  const kpis = [
-    ['Community concern', d.community_concern_score.toFixed(0)],
-    ['Research consensus', d.research_risk_consensus.toFixed(0)+'%'],
-    ['Research papers', d.total_research_papers],
-    ['Dependency', d.dependency_mention_rate.toFixed(0)+'%'],
-    ['Withdrawal', d.withdrawal_mention_rate.toFixed(0)+'%'],
-    ['Adverse reports', d.total_reports.toLocaleString()],
-  ];
-  document.getElementById('kpis').innerHTML = kpis.map(([l,v]) =>
-    `<div class="kpi"><div class="lbl">${l}</div><div class="val">${v}</div></div>`).join('');
-
-  const tags = document.getElementById('interTags');
-  tags.innerHTML = '';
-  (d.known_interactions.length ? d.known_interactions : ['None reported']).forEach(t => {
-    const el = document.createElement('span'); el.className='tag'; el.textContent=t; tags.appendChild(el);
-  });
+  const tags=document.getElementById('interTags'); tags.innerHTML='';
+  (d.known_interactions.length?d.known_interactions:['None reported']).forEach(t=>{
+    const e=document.createElement('span'); e.className='tag'; e.textContent=t; tags.appendChild(e);});
 
   chartShap(d); chartAge(d); chartReactDrug(d);
 }
 
-/* ---------- CHAT ---------- */
-function getApiBase() {
-  try { const s = localStorage.getItem('pw-api'); if (s) return s; } catch(e){}
-  const q = new URLSearchParams(location.search).get('api'); if (q) return q;
-  return (DATA && DATA.meta && DATA.meta.api_base_url) || '';
-}
-const trimSlash = u => (u||'').replace(/\/+$/,'');
-function setApiStatus() {
-  const base = getApiBase(); const el = document.getElementById('apiStatus');
-  if (base) { el.textContent='● connected: '+base; el.className='api-ok'; document.getElementById('apiInput').value=base; }
-  else { el.textContent='● backend not connected'; el.className='api-off'; }
-}
-function addMsg(t, cls) {
-  const log = document.getElementById('chatLog'); const d = document.createElement('div');
-  d.className='msg '+cls; d.textContent=t; log.appendChild(d); log.scrollTop=log.scrollHeight; return d;
-}
-async function sendChat() {
-  const input = document.getElementById('chatInput'); const q = input.value.trim(); if (!q) return;
-  const base = getApiBase();
-  if (!base) { addMsg('Connect your live API first — paste its URL above.','sys'); return; }
-  if (!current) { addMsg('Select a drug first.','sys'); return; }
-  addMsg(q,'user'); input.value='';
-  const thinking = addMsg('…thinking','bot');
-  try {
-    const resp = await fetch(trimSlash(base)+'/ask', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        drug_name: current.drug_name, age: parseInt(document.getElementById('chatAge').value,10)||30, weight:70, question:q,
-        sex: document.getElementById('chatSex').value||null, smoker: document.getElementById('chatSmoker').checked,
-        alcohol: document.getElementById('chatAlcohol').value||'none', concurrent_meds:0, pregnant:false })
-    });
-    thinking.remove();
-    if (!resp.ok) { const e = await resp.json().catch(()=>null); addMsg('API error '+resp.status+(e&&e.detail?': '+e.detail:''),'sys'); return; }
-    const data = await resp.json(); addMsg(data.answer||'(no answer)','bot');
-  } catch(err) { thinking.remove(); addMsg("Couldn't reach the API. Is it deployed and the URL correct? ("+err+')','sys'); }
+/* ---- CHAT ---- */
+function getApiBase(){try{const s=localStorage.getItem('pw-api');if(s)return s;}catch(e){}
+  const q=new URLSearchParams(location.search).get('api');if(q)return q;
+  return (DATA&&DATA.meta&&DATA.meta.api_base_url)||'';}
+const trimSlash=u=>(u||'').replace(/\/+$/,'');
+function setApiStatus(){const b=getApiBase(),el=document.getElementById('apiStatus');
+  if(b){el.textContent='● connected: '+b;el.className='api-ok';document.getElementById('apiInput').value=b;}
+  else{el.textContent='● backend not connected';el.className='api-off';}}
+function addMsg(t,c){const l=document.getElementById('chatLog'),d=document.createElement('div');
+  d.className='msg '+c;d.textContent=t;l.appendChild(d);l.scrollTop=l.scrollHeight;return d;}
+async function sendChat(){
+  const inp=document.getElementById('chatInput'),q=inp.value.trim();if(!q)return;
+  const base=getApiBase();
+  if(!base){addMsg('Connect your live API first — paste its URL above.','sys');return;}
+  if(!current){addMsg('Select a specimen first.','sys');return;}
+  addMsg(q,'user');inp.value='';const th=addMsg('…consulting record','bot');
+  try{
+    const resp=await fetch(trimSlash(base)+'/ask',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({drug_name:current.drug_name,age:parseInt(document.getElementById('chatAge').value,10)||30,weight:70,question:q,
+        sex:document.getElementById('chatSex').value||null,smoker:document.getElementById('chatSmoker').checked,
+        alcohol:document.getElementById('chatAlcohol').value||'none',concurrent_meds:0,pregnant:false})});
+    th.remove();
+    if(!resp.ok){const e=await resp.json().catch(()=>null);addMsg('API error '+resp.status+(e&&e.detail?': '+e.detail:''),'sys');return;}
+    const data=await resp.json();addMsg(data.answer||'(no answer)','bot');
+  }catch(err){th.remove();addMsg("Couldn't reach the API. Is it deployed and the URL correct? ("+err+')','sys');}
 }
 
-/* ---------- BOOT ---------- */
-function renderAll() {
-  renderStatbar(); renderSources(); renderStages(); renderTech(); renderInsights(); renderRuns();
-  chartRank(); chartMatrix(); chartScatter(); chartReactions(); chartAuc(); chartImportance();
-  if (current) selectDrug(current.drug_name);
+/* ---- BOOT ---- */
+function renderAll(){
+  renderKeyfig();renderSources();renderSpec();renderRuns();
+  chartRank();chartMatrix();chartScatter();chartReactions();chartAuc();chartImportance();
+  if(current) selectDrug(current.drug_name);
 }
+document.getElementById('drugSelect').addEventListener('change',e=>selectDrug(e.target.value));
+document.getElementById('apiSave').addEventListener('click',()=>{
+  const v=trimSlash(document.getElementById('apiInput').value.trim());
+  try{if(v)localStorage.setItem('pw-api',v);else localStorage.removeItem('pw-api');}catch(e){}
+  setApiStatus();addMsg(v?'API connected — ask away.':'API cleared.','sys');});
+document.getElementById('chatSend').addEventListener('click',sendChat);
+document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
 
-document.getElementById('drugSelect').addEventListener('change', e => selectDrug(e.target.value));
-document.getElementById('apiSave').addEventListener('click', () => {
-  const v = trimSlash(document.getElementById('apiInput').value.trim());
-  try { if (v) localStorage.setItem('pw-api', v); else localStorage.removeItem('pw-api'); } catch(e){}
-  setApiStatus(); addMsg(v ? 'API connected — ask away.' : 'API cleared.','sys');
-});
-document.getElementById('chatSend').addEventListener('click', sendChat);
-document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key==='Enter') sendChat(); });
+fetch('data/dashboard.json').then(r=>r.json()).then(d=>{
+  DATA=d;const m=d.meta;
+  document.getElementById('metaLine').innerHTML=
+    'GENERATED <b>'+m.generated_at.slice(0,10)+'</b>'+
+    ' · CLASSIFICATION <b>PUBLIC</b>'+
+    ' · DATA <b>'+(m.mode==='live'?'LIVE':'SAMPLE')+'</b>'+
+    ' · SPECIMENS <b>'+d.stats.drugs+'</b>'+
+    ' · SOURCES <b>'+d.stats.data_sources+'</b>';
+  if(m.mode!=='live'){document.getElementById('stamp').innerHTML='Sample Data<br>Educational';}
 
-fetch('data/dashboard.json').then(r=>r.json()).then(d => {
-  DATA = d; const m = d.meta;
-  document.getElementById('dataFlag').innerHTML =
-    (m.mode==='live'?'<b>● live data</b>':'<b>● sample data</b>') + ' · generated ' + m.generated_at.slice(0,10) +
-    ' · ' + d.stats.drugs + ' drugs · ' + d.stats.data_sources + ' sources';
+  const sel=document.getElementById('drugSelect');
+  d.profiles.forEach(p=>{const o=document.createElement('option');o.value=p.drug_name;o.textContent=p.drug_name;sel.appendChild(o);});
+  document.getElementById('heroChips').innerHTML=d.profiles.map(p=>`<span class="chip" data-d="${p.drug_name}">${p.drug_name}</span>`).join('');
+  document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{selectDrug(c.dataset.d);document.getElementById('monograph').scrollIntoView({behavior:'smooth'});}));
 
-  const sel = document.getElementById('drugSelect');
-  d.profiles.forEach(p => { const o=document.createElement('option'); o.value=p.drug_name; o.textContent=p.drug_name; sel.appendChild(o); });
-  document.getElementById('heroChips').innerHTML =
-    d.profiles.slice(0,6).map(p=>`<span class="chip" data-d="${p.drug_name}">${p.drug_name}</span>`).join('');
-  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
-    selectDrug(c.dataset.d); document.getElementById('explorer').scrollIntoView({behavior:'smooth'});
-  }));
+  document.getElementById('colophon').innerHTML=
+    '<span class="nm">Oscar Melendez</span> · Data Engineering · ML · GenAI · '+
+    '<a href="https://github.com/oscar-melendez77/PharmaWatch">github.com/oscar-melendez77/PharmaWatch</a>'+
+    '<br>Typeset with Fraunces &amp; IBM Plex · Figures rendered in Plotly · Record regenerated daily by GitHub Actions';
+  document.getElementById('footnotes').innerHTML='<sup>*</sup> '+m.disclaimer;
 
-  document.getElementById('footer').innerHTML =
-    m.disclaimer + '<br>PharmaWatch · <a href="https://github.com/oscar-melendez77/PharmaWatch">source on GitHub</a>';
-  document.getElementById('devbar').innerHTML =
-    '<span class="nm">Oscar Melendez</span><span class="sep">/</span>' +
-    '<a href="https://github.com/oscar-melendez77/PharmaWatch">github.com/oscar-melendez77</a>' +
-    '<span class="sep">/</span><span>Data Engineering · ML · GenAI</span>';
-
-  current = d.profiles[0];
-  renderAll(); setApiStatus();
-  addMsg(getApiBase() ? 'Hi — ask me anything about '+current.drug_name+'. I use FAERS, PubMed, Reddit & FDA labels.'
-    : 'Paste your live API URL above to start chatting about '+current.drug_name+'.', 'sys');
-}).catch(err => { document.getElementById('dataFlag').textContent='data unavailable'; console.error(err); });
+  current=d.profiles[0];
+  renderAll();setApiStatus();
+  addMsg(getApiBase()?'Inquiry desk open. Ask anything about '+current.drug_name+' — grounded in FAERS, PubMed, Reddit & FDA labels.'
+    :'Connect the live API above to consult the record on '+current.drug_name+'.','sys');
+}).catch(err=>{document.getElementById('metaLine').textContent='record unavailable';console.error(err);});
 </script>
 </body>
 </html>
