@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-10-02T15:36:50.096577+00:00",
+    "generated_at": "2026-10-03T14:12:25.064587+00:00",
     "mode": "sample",
     "drug_count": 8,
     "api_base_url": "",
@@ -934,10 +934,25 @@
   ],
   "pipeline_runs": [
     {
-      "date": "2026-10-02",
+      "date": "2026-10-03",
       "status": "running",
-      "duration_s": 448,
-      "rows": 11731,
+      "duration_s": 528,
+      "rows": 5528,
+      "stages": [
+        "ingest",
+        "iceberg",
+        "spark",
+        "warehouse",
+        "dbt",
+        "train",
+        "embed"
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "status": "ok",
+      "duration_s": 561,
+      "rows": 11388,
       "stages": [
         "ingest",
         "iceberg",
@@ -1028,21 +1043,6 @@
       "status": "ok",
       "duration_s": 753,
       "rows": 15324,
-      "stages": [
-        "ingest",
-        "iceberg",
-        "spark",
-        "warehouse",
-        "dbt",
-        "train",
-        "embed"
-      ]
-    },
-    {
-      "date": "2026-09-25",
-      "status": "ok",
-      "duration_s": 545,
-      "rows": 15715,
       "stages": [
         "ingest",
         "iceberg",
