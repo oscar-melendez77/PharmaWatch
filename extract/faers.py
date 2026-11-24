@@ -10,12 +10,17 @@ PAGE_SIZE = 100              # reports per request (without an api key openFDA a
 MAX_PAGES = 2                # pages to fetch for each search, 2 pages x 100 = up to 200 reports
 SORT = "receivedate:desc"    # newest reports first
 PAUSE_SECONDS = 0.5          # wait between requests to be polite to the API
+MAX_ATTEMPTS = 3             # how many times to try a request that fails with a server error
+RETRY_WAIT_SECONDS = 10      # wait before retry 1, doubles for retry 2 (10s, then 20s)
 API_KEY = os.environ.get("OPENFDA_API_KEY")    # optional, a free key raises the daily request limit
 DRUGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "drugs.txt")
 OUT_DIR = "data/raw"
 
 today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 out_path = OUT_DIR + "/faers_" + today + ".json"
+
+# finished drugs are saved here, so running the script again today skips them
+CACHE_DIR = "data/cache/faers_" + today
 
 # read the drug list: standard_name|brand_name|search_ingredient
 drugs = []
@@ -32,13 +37,26 @@ print("[1/4] config ready,", len(drugs), "drugs, will save to", out_path)
 # 2. request
 # for every drug we search twice: once by the generic ingredient, once by the brand name
 raw_reports = []
+failed_drugs = []
 
 for drug in drugs:
+    cache_path = os.path.join(CACHE_DIR, drug["name"].replace(" ", "_") + ".json")
+
+    # already downloaded today, load it from disk instead of asking the API again
+    if os.path.exists(cache_path):
+        with open(cache_path) as f:
+            cached_reports = json.load(f)
+        for report in cached_reports:
+            raw_reports.append({"drug": drug["name"], "report": report})
+        print("   ", drug["name"], "->", len(cached_reports), "reports (from cache)")
+        continue
+
     searches = [
         'patient.drug.openfda.generic_name:"' + drug["ingredient"] + '"',
         'patient.drug.openfda.brand_name:"' + drug["brand"] + '"',
     ]
-    drug_total = 0
+    drug_reports = []
+    drug_failed = False
 
     for search in searches:
         for page in range(MAX_PAGES):
@@ -46,33 +64,57 @@ for drug in drugs:
             if API_KEY:
                 params["api_key"] = API_KEY
 
-            try:
-                response = requests.get(URL, params=params, timeout=60)
-            except requests.RequestException as error:
-                print("   request failed for", drug["name"], ":", error)
+            # try the request up to MAX_ATTEMPTS times, 200 and 404 both count as a real answer
+            response = None
+            for attempt in range(MAX_ATTEMPTS):
+                try:
+                    response = requests.get(URL, params=params, timeout=60)
+                except requests.RequestException as error:
+                    print("   ", drug["name"], "-> connection error:", error)
+                    response = None
+                time.sleep(PAUSE_SECONDS)
+
+                if response is not None and response.status_code in (200, 404):
+                    break
+
+                wait = RETRY_WAIT_SECONDS * (2 ** attempt)
+                if response is not None:
+                    print("   ", drug["name"], "-> status", response.status_code, ", attempt", attempt + 1, "of", MAX_ATTEMPTS)
+                if attempt < MAX_ATTEMPTS - 1:
+                    time.sleep(wait)
+
+            # still no real answer after all attempts, give up on this drug for now
+            if response is None or response.status_code not in (200, 404):
+                drug_failed = True
                 break
-            time.sleep(PAUSE_SECONDS)
 
             # a 404 means no reports match this search (or no more pages)
             if response.status_code == 404:
                 break
-            if response.status_code != 200:
-                print("   ", drug["name"], "-> status", response.status_code, response.text[:120])
-                break
 
-            payload = response.json()
-            page_reports = payload.get("results", [])
+            page_reports = response.json().get("results", [])
             for report in page_reports:
-                raw_reports.append({"drug": drug["name"], "report": report})
-            drug_total = drug_total + len(page_reports)
+                drug_reports.append(report)
 
             # fewer reports than a full page means this was the last page
             if len(page_reports) < PAGE_SIZE:
                 break
 
-    print("   ", drug["name"], "->", drug_total, "reports")
+    for report in drug_reports:
+        raw_reports.append({"drug": drug["name"], "report": report})
+
+    if drug_failed:
+        failed_drugs.append(drug["name"])
+        print("   ", drug["name"], "-> FAILED, kept", len(drug_reports), "reports, run again to retry")
+    else:
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        with open(cache_path, "w") as f:
+            json.dump(drug_reports, f)
+        print("   ", drug["name"], "->", len(drug_reports), "reports")
 
 print("[2/4] request done,", len(raw_reports), "raw reports received")
+if len(failed_drugs) > 0:
+    print("      drugs that failed:", ", ".join(failed_drugs))
 
 # 3. parse
 records = []
@@ -161,3 +203,5 @@ os.makedirs(OUT_DIR, exist_ok=True)
 with open(out_path, "w") as f:
     json.dump(records, f, indent=2)
 print("[4/4] saved", len(records), "records to", out_path)
+if len(failed_drugs) > 0:
+    print("      NOT complete:", len(failed_drugs), "drugs failed, run the script again to fill them in")

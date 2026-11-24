@@ -10,12 +10,17 @@ LABELS_PER_SEARCH = 3            # labels to keep per search (many companies pub
 SORT = "effective_time:desc"     # most recently updated labels first
 TEXT_LIMIT = 500                 # keep only the first 500 characters of long text fields
 PAUSE_SECONDS = 0.5              # wait between requests to be polite to the API
+MAX_ATTEMPTS = 3                 # how many times to try a request that fails with a server error
+RETRY_WAIT_SECONDS = 10          # wait before retry 1, doubles for retry 2 (10s, then 20s)
 API_KEY = os.environ.get("OPENFDA_API_KEY")    # optional, a free key raises the daily request limit
 DRUGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "drugs.txt")
 OUT_DIR = "data/raw"
 
 today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 out_path = OUT_DIR + "/openfda_" + today + ".json"
+
+# finished drugs are saved here, so running the script again today skips them
+CACHE_DIR = "data/cache/openfda_" + today
 
 # read the drug list: standard_name|brand_name|search_ingredient
 drugs = []
@@ -32,42 +37,78 @@ print("[1/4] config ready,", len(drugs), "drugs, will save to", out_path)
 # 2. request
 # for every drug we search twice: once by generic name, once by brand name
 raw_labels = []
+failed_drugs = []
 
 for drug in drugs:
+    cache_path = os.path.join(CACHE_DIR, drug["name"].replace(" ", "_") + ".json")
+
+    # already downloaded today, load it from disk instead of asking the API again
+    if os.path.exists(cache_path):
+        with open(cache_path) as f:
+            cached_labels = json.load(f)
+        for label in cached_labels:
+            raw_labels.append({"drug": drug["name"], "label": label})
+        print("   ", drug["name"], "->", len(cached_labels), "labels (from cache)")
+        continue
+
     searches = [
         'openfda.generic_name:"' + drug["ingredient"] + '"',
         'openfda.brand_name:"' + drug["brand"] + '"',
     ]
-    drug_total = 0
+    drug_labels = []
+    drug_failed = False
 
     for search in searches:
         params = {"search": search, "limit": LABELS_PER_SEARCH, "sort": SORT}
         if API_KEY:
             params["api_key"] = API_KEY
 
-        try:
-            response = requests.get(URL, params=params, timeout=60)
-        except requests.RequestException as error:
-            print("   request failed for", drug["name"], ":", error)
+        # try the request up to MAX_ATTEMPTS times, 200 and 404 both count as a real answer
+        response = None
+        for attempt in range(MAX_ATTEMPTS):
+            try:
+                response = requests.get(URL, params=params, timeout=60)
+            except requests.RequestException as error:
+                print("   ", drug["name"], "-> connection error:", error)
+                response = None
+            time.sleep(PAUSE_SECONDS)
+
+            if response is not None and response.status_code in (200, 404):
+                break
+
+            wait = RETRY_WAIT_SECONDS * (2 ** attempt)
+            if response is not None:
+                print("   ", drug["name"], "-> status", response.status_code, ", attempt", attempt + 1, "of", MAX_ATTEMPTS)
+            if attempt < MAX_ATTEMPTS - 1:
+                time.sleep(wait)
+
+        # still no real answer after all attempts, skip this search and mark the drug as failed
+        if response is None or response.status_code not in (200, 404):
+            drug_failed = True
             continue
-        time.sleep(PAUSE_SECONDS)
 
         # a 404 means no label matches this search
         if response.status_code == 404:
             continue
-        if response.status_code != 200:
-            print("   ", drug["name"], "-> status", response.status_code, response.text[:120])
-            continue
 
-        payload = response.json()
-        results = payload.get("results", [])
-        for label in results:
-            raw_labels.append({"drug": drug["name"], "label": label})
-        drug_total = drug_total + len(results)
+        for label in response.json().get("results", []):
+            drug_labels.append(label)
 
-    print("   ", drug["name"], "->", drug_total, "labels")
+    for label in drug_labels:
+        raw_labels.append({"drug": drug["name"], "label": label})
+
+    if drug_failed:
+        failed_drugs.append(drug["name"])
+        print("   ", drug["name"], "-> FAILED, kept", len(drug_labels), "labels, run again to retry")
+    else:
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        with open(cache_path, "w") as f:
+            json.dump(drug_labels, f)
+        print("   ", drug["name"], "->", len(drug_labels), "labels")
 
 print("[2/4] request done,", len(raw_labels), "raw labels received")
+if len(failed_drugs) > 0:
+    print("      drugs that failed:", ", ".join(failed_drugs))
 
 # 3. parse
 records = []
@@ -142,3 +183,5 @@ os.makedirs(OUT_DIR, exist_ok=True)
 with open(out_path, "w") as f:
     json.dump(records, f, indent=2)
 print("[4/4] saved", len(records), "records to", out_path)
+if len(failed_drugs) > 0:
+    print("      NOT complete:", len(failed_drugs), "drugs failed, run the script again to fill them in")

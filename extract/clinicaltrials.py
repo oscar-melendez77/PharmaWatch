@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 URL = "https://clinicaltrials.gov/api/v2/studies"
 STUDIES_PER_SEARCH = 5       # studies to keep for each search
 PAUSE_SECONDS = 1            # wait between requests to be polite to the API
+MAX_ATTEMPTS = 3             # how many times to try a request that fails
+RETRY_WAIT_SECONDS = 10      # wait before retry 1, doubles for retry 2 (10s, then 20s)
 DRUGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "drugs.txt")
 OUT_DIR = "data/raw"
 
@@ -29,10 +31,12 @@ print("[1/4] config ready,", len(drugs), "drugs, will save to", out_path)
 # 2. request
 # for every drug we search twice: once by ingredient, once by brand name, only studies with posted results
 raw_studies = []
+failed_drugs = []
 
 for drug in drugs:
     search_terms = [drug["ingredient"], drug["brand"]]
     drug_total = 0
+    drug_failed = False
 
     for term in search_terms:
         params = {
@@ -41,20 +45,44 @@ for drug in drugs:
             "pageSize": STUDIES_PER_SEARCH,
             "format": "json",
         }
-        try:
-            response = requests.get(URL, params=params, timeout=60)
-            response.raise_for_status()
-            studies = response.json().get("studies", [])
-            for study in studies:
-                raw_studies.append({"drug": drug["name"], "study": study})
-            drug_total = drug_total + len(studies)
-        except requests.RequestException as error:
-            print("   request failed for", term, ":", error)
-        time.sleep(PAUSE_SECONDS)
 
-    print("   ", drug["name"], "->", drug_total, "studies")
+        # try the request up to MAX_ATTEMPTS times
+        response = None
+        for attempt in range(MAX_ATTEMPTS):
+            try:
+                response = requests.get(URL, params=params, timeout=60)
+            except requests.RequestException as error:
+                print("   ", term, "-> connection error:", error)
+                response = None
+            time.sleep(PAUSE_SECONDS)
+
+            if response is not None and response.status_code == 200:
+                break
+
+            wait = RETRY_WAIT_SECONDS * (2 ** attempt)
+            if response is not None:
+                print("   ", term, "-> status", response.status_code, ", attempt", attempt + 1, "of", MAX_ATTEMPTS)
+            if attempt < MAX_ATTEMPTS - 1:
+                time.sleep(wait)
+
+        if response is None or response.status_code != 200:
+            drug_failed = True
+            continue
+
+        studies = response.json().get("studies", [])
+        for study in studies:
+            raw_studies.append({"drug": drug["name"], "study": study})
+        drug_total = drug_total + len(studies)
+
+    if drug_failed:
+        failed_drugs.append(drug["name"])
+        print("   ", drug["name"], "-> FAILED on at least one search, kept", drug_total, "studies")
+    else:
+        print("   ", drug["name"], "->", drug_total, "studies")
 
 print("[2/4] requests done,", len(raw_studies), "studies received in total")
+if len(failed_drugs) > 0:
+    print("      drugs that failed:", ", ".join(failed_drugs))
 
 # 3. parse
 records = []
@@ -142,3 +170,5 @@ os.makedirs(OUT_DIR, exist_ok=True)
 with open(out_path, "w") as f:
     json.dump(records, f, indent=2)
 print("[4/4] saved", len(records), "records to", out_path)
+if len(failed_drugs) > 0:
+    print("      NOT complete:", len(failed_drugs), "drugs failed, run the script again to fill them in")
