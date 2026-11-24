@@ -1,0 +1,112 @@
+# format: standard_name|brand_name|search_ingredient
+# standard_name is the tag saved on every record, brand and ingredient are the two names searched
+# source for ranks: ClinCalc DrugStats Top 300 of 2024 (CC BY-SA 4.0), supplements removed, ranks 101-105 added
+# section 1: most prescribed
+atorvastatin|Lipitor|atorvastatin
+levothyroxine|Synthroid|levothyroxine
+metformin|Glucophage|metformin
+amlodipine|Norvasc|amlodipine
+lisinopril|Zestril|lisinopril
+albuterol|ProAir|albuterol
+losartan|Cozaar|losartan
+metoprolol|Lopressor|metoprolol
+rosuvastatin|Crestor|rosuvastatin
+omeprazole|Prilosec|omeprazole
+gabapentin|Neurontin|gabapentin
+sertraline|Zoloft|sertraline
+escitalopram|Lexapro|escitalopram
+semaglutide|Ozempic|semaglutide
+amphetamine|Adderall|amphetamine
+pantoprazole|Protonix|pantoprazole
+bupropion|Wellbutrin|bupropion
+hydrochlorothiazide|Microzide|hydrochlorothiazide
+fluoxetine|Prozac|fluoxetine
+trazodone|Desyrel|trazodone
+montelukast|Singulair|montelukast
+amoxicillin|Amoxil|amoxicillin
+fluticasone|Flonase|fluticasone
+tamsulosin|Flomax|tamsulosin
+apixaban|Eliquis|apixaban
+simvastatin|Zocor|simvastatin
+insulin glargine|Lantus|insulin glargine
+empagliflozin|Jardiance|empagliflozin
+furosemide|Lasix|furosemide
+meloxicam|Mobic|meloxicam
+hydrocodone|Vicodin|hydrocodone
+tirzepatide|Zepbound|tirzepatide
+methylphenidate|Ritalin|methylphenidate
+duloxetine|Cymbalta|duloxetine
+prednisone|Deltasone|prednisone
+carvedilol|Coreg|carvedilol
+famotidine|Pepcid|famotidine
+ibuprofen|Advil|ibuprofen
+buspirone|Buspar|buspirone
+venlafaxine|Effexor|venlafaxine
+tramadol|Ultram|tramadol
+hydroxyzine|Atarax|hydroxyzine
+allopurinol|Zyloprim|allopurinol
+clopidogrel|Plavix|clopidogrel
+cetirizine|Zyrtec|cetirizine
+ondansetron|Zofran|ondansetron
+cyclobenzaprine|Flexeril|cyclobenzaprine
+spironolactone|Aldactone|spironolactone
+oxycodone|OxyContin|oxycodone
+estradiol|Estrace|estradiol
+aspirin|Bayer|aspirin
+glipizide|Glucotrol|glipizide
+zolpidem|Ambien|zolpidem
+lamotrigine|Lamictal|lamotrigine
+alprazolam|Xanax|alprazolam
+citalopram|Celexa|citalopram
+pregabalin|Lyrica|pregabalin
+clonazepam|Klonopin|clonazepam
+azithromycin|Zithromax|azithromycin
+pravastatin|Pravachol|pravastatin
+valsartan|Diovan|valsartan
+ezetimibe|Zetia|ezetimibe
+diclofenac|Voltaren|diclofenac
+insulin lispro|Humalog|insulin lispro
+norethindrone and ethinyl estradiol|Loestrin|norethindrone
+propranolol|Inderal|propranolol
+latanoprost|Xalatan|latanoprost
+atenolol|Tenormin|atenolol
+lisdexamfetamine|Vyvanse|lisdexamfetamine
+doxycycline|Vibramycin|doxycycline
+amoxicillin and clavulanate|Augmentin|clavulanate
+dulaglutide|Trulicity|dulaglutide
+lisinopril and hydrochlorothiazide|Zestoretic|lisinopril
+lorazepam|Ativan|lorazepam
+fluticasone and salmeterol|Advair|salmeterol
+insulin aspart|NovoLog|insulin aspart
+celecoxib|Celebrex|celecoxib
+finasteride|Proscar|finasteride
+quetiapine|Seroquel|quetiapine
+clonidine|Catapres|clonidine
+aripiprazole|Abilify|aripiprazole
+cephalexin|Keflex|cephalexin
+alendronate|Fosamax|alendronate
+topiramate|Topamax|topiramate
+tizanidine|Zanaflex|tizanidine
+dapagliflozin|Farxiga|dapagliflozin
+oxycodone and acetaminophen|Percocet|oxycodone
+losartan and hydrochlorothiazide|Hyzaar|losartan
+olmesartan|Benicar|olmesartan
+testosterone|AndroGel|testosterone
+amitriptyline|Elavil|amitriptyline
+rivaroxaban|Xarelto|rivaroxaban
+fenofibrate|Tricor|fenofibrate
+triamcinolone|Kenalog|triamcinolone
+paroxetine|Paxil|paroxetine
+loratadine|Claritin|loratadine
+warfarin|Coumadin|warfarin
+valacyclovir|Valtrex|valacyclovir
+budesonide and formoterol|Symbicort|formoterol
+norgestimate and ethinyl estradiol|Ortho Tri-Cyclen|norgestimate
+# section 2: high-risk extras added on top of the top 100
+methadone|Dolophine|methadone
+fentanyl|Duragesic|fentanyl
+morphine|MS Contin|morphine
+buprenorphine|Suboxone|buprenorphine
+diazepam|Valium|diazepam
+lithium|Lithobid|lithium
+dupilumab|Dupixent|dupilumab
