@@ -12,6 +12,8 @@ SORT = "receivedate:desc"    # newest reports first
 PAUSE_SECONDS = 0.5          # wait between requests to be polite to the API
 MAX_ATTEMPTS = 3             # how many times to try a request that fails with a server error
 RETRY_WAIT_SECONDS = 10      # wait before retry 1, doubles for retry 2 (10s, then 20s)
+# FAERS reports age with a unit code, this is how many years one unit of each code is
+AGE_UNIT_TO_YEARS = {"800": 10.0, "801": 1.0, "802": 1 / 12, "803": 1 / 52.1775, "804": 1 / 365.25, "805": 1 / 8766}
 API_KEY = os.environ.get("OPENFDA_API_KEY")    # optional, a free key raises the daily request limit
 DRUGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "drugs.txt")
 OUT_DIR = "data/raw"
@@ -117,6 +119,7 @@ if len(failed_drugs) > 0:
     print("      drugs that failed:", ", ".join(failed_drugs))
 
 # 3. parse
+# one record per report, drug and reaction
 records = []
 seen_keys = set()
 dropped = 0
@@ -134,16 +137,24 @@ for item in raw_reports:
     if len(drugs_on_report) > 0:
         reported_drug = drugs_on_report[0].get("medicinalproduct")
 
-    reaction = None
-    if len(reactions) > 0:
-        reaction = reactions[0].get("reactionmeddrapt")
+    # every distinct reaction on the report, a report with none still keeps one row
+    reaction_terms = []
+    for reaction_item in reactions:
+        term = reaction_item.get("reactionmeddrapt")
+        if term and term not in reaction_terms:
+            reaction_terms.append(term)
+    if len(reaction_terms) == 0:
+        reaction_terms = [None]
 
-    # age and weight can be missing or not numeric
-    age = None
+    # age comes with a unit code, convert it to years, leave it empty if the unit is missing or unknown
+    age_unit = patient.get("patientonsetageunit")
+    age_years = None
     try:
-        age = int(patient.get("patientonsetage"))
+        age_value = float(patient.get("patientonsetage"))
+        if str(age_unit) in AGE_UNIT_TO_YEARS:
+            age_years = round(age_value * AGE_UNIT_TO_YEARS[str(age_unit)], 4)
     except (TypeError, ValueError):
-        age = None
+        age_years = None
 
     weight = None
     try:
@@ -164,37 +175,38 @@ for item in raw_reports:
     report_id = report.get("safetyreportid")
     severity = report.get("serious")
 
-    # one report can belong to two drugs, so a repeat means the same report and the same drug
-    key = str(report_id) + "|" + drug_name
-
     # drop reports we cannot use
     if not report_id:
-        dropped = dropped + 1
-        continue
-    if key in seen_keys:
         dropped = dropped + 1
         continue
     if severity not in (1, 2, "1", "2"):
         dropped = dropped + 1
         continue
 
-    seen_keys.add(key)
+    for reaction in reaction_terms:
+        # one report can belong to two drugs, so a repeat means the same report, drug and reaction
+        key = str(report_id) + "|" + drug_name + "|" + str(reaction)
+        if key in seen_keys:
+            dropped = dropped + 1
+            continue
+        seen_keys.add(key)
 
-    record = {
-        "report_id": report_id,
-        "drug_name": drug_name,
-        "reported_drug": reported_drug,
-        "reaction": reaction,
-        "severity": severity,
-        "age": age,
-        "weight": weight,
-        "report_date": report.get("receivedate"),
-        "hospitalization": flags["seriousnesshospitalization"],
-        "death": flags["seriousnessdeath"],
-        "disability": flags["seriousnessdisabling"],
-        "ingestion_ts": datetime.now(timezone.utc).isoformat(),
-    }
-    records.append(record)
+        record = {
+            "report_id": report_id,
+            "drug_name": drug_name,
+            "reported_drug": reported_drug,
+            "reaction": reaction,
+            "severity": severity,
+            "age_years": age_years,
+            "age_unit": age_unit,
+            "weight": weight,
+            "report_date": report.get("receivedate"),
+            "hospitalization": flags["seriousnesshospitalization"],
+            "death": flags["seriousnessdeath"],
+            "disability": flags["seriousnessdisabling"],
+            "ingestion_ts": datetime.now(timezone.utc).isoformat(),
+        }
+        records.append(record)
 
 print("[3/4] parse done, kept", len(records), "dropped", dropped)
 

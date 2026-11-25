@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: stg_faers
+    description: "One row per FAERS report, target drug and reaction. Report level fields (age, weight, seriousness flags) repeat on every reaction row, so count distinct report_id when counting reports. patient_age_years is converted from the unit on the report and is empty when the unit is missing."
+    columns:
+      - name: faers_key
+        data_tests:
+          - unique
+          - not_null
+      - name: report_id
+        data_tests:
+          - not_null
+      - name: drug_name
+        data_tests:
+          - not_null
+      - name: is_serious
+        data_tests:
+          - not_null
+      - name: report_date
+        data_tests:
+          - not_null
+
+  - name: stg_openfda_labels
+    description: "One row per openFDA drug label."
+    columns:
+      - name: label_id
+        data_tests:
+          - unique
+          - not_null
+      - name: drug_name
+        data_tests:
+          - not_null
+
+  - name: stg_pubmed_articles
+    description: "One row per PubMed article and target drug. The same article can match more than one drug."
+    columns:
+      - name: article_drug_key
+        data_tests:
+          - unique
+          - not_null
+      - name: published_on
+        data_tests:
+          - not_null
+
+  - name: stg_clinicaltrials_studies
+    description: "One row per ClinicalTrials.gov study and target drug."
+    columns:
+      - name: study_drug_key
+        data_tests:
+          - unique
+          - not_null
+      - name: status
+        data_tests:
+          - accepted_values:
+              values: ["COMPLETED", "TERMINATED", "ACTIVE_NOT_RECRUITING"]
+              config:
+                severity: warn
+      - name: started_on
+        data_tests:
+          - not_null
+
+  - name: stg_clinicaltrials_adverse_events
+    description: "One row per study, drug, adverse event term and seriousness, unnested from the raw adverse_events list. A few keys repeat because the extract lists some terms once per group, so the unique test only warns."
+    columns:
+      - name: event_key
+        data_tests:
+          - unique:
+              config:
+                severity: warn
+          - not_null

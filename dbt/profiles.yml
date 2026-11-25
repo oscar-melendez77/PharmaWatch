@@ -1,0 +1,10 @@
+pharmawatch:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: pharmawatch_staging
+      location: us-central1
+      threads: 4

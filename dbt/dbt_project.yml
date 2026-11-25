@@ -1,0 +1,16 @@
+name: pharmawatch
+version: "1.0.0"
+config-version: 2
+profile: pharmawatch
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  pharmawatch:
+    staging:
+      +materialized: view
+      +schema: pharmawatch_staging

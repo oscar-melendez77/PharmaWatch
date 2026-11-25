@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: raw
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: pharmawatch_raw
+    tables:
+      - name: faers
+      - name: openfda_labels
+      - name: pubmed_articles
+      - name: clinicaltrials_studies
