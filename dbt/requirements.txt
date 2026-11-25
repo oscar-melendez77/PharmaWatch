@@ -1,0 +1,2 @@
+dbt-core==1.13.0b1
+dbt-bigquery==1.12.4

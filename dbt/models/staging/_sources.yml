@@ -9,3 +9,4 @@ sources:
       - name: openfda_labels
       - name: pubmed_articles
       - name: clinicaltrials_studies
+      - name: faers_counts

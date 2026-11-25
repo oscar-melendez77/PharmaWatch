@@ -22,11 +22,14 @@ models:
           - not_null
 
   - name: stg_openfda_labels
-    description: "One row per openFDA drug label."
+    description: "One row per openFDA drug label and target drug. A combination label, such as one for losartan and hydrochlorothiazide, matches both drugs and appears twice."
     columns:
-      - name: label_id
+      - name: label_drug_key
         data_tests:
           - unique
+          - not_null
+      - name: label_id
+        data_tests:
           - not_null
       - name: drug_name
         data_tests:
@@ -53,7 +56,8 @@ models:
       - name: status
         data_tests:
           - accepted_values:
-              values: ["COMPLETED", "TERMINATED", "ACTIVE_NOT_RECRUITING"]
+              arguments:
+                values: ["COMPLETED", "TERMINATED", "ACTIVE_NOT_RECRUITING"]
               config:
                 severity: warn
       - name: started_on
@@ -68,4 +72,15 @@ models:
           - unique:
               config:
                 severity: warn
+          - not_null
+
+  - name: stg_faers_counts
+    description: "One row per drug and reaction with the report counts the PRR formula needs, taken from the openFDA count endpoint over all of FAERS. drug_reaction_reports is reports with the drug and the reaction, drug_reports is all reports with the drug, reaction_reports is all reports with the reaction, total_reports is every report in FAERS. Reaction names are upper case. For reactions whose name has an apostrophe (stored with ^ in part of the data) reaction_reports comes from a words search and is approximate, marked by reaction_total_approximate."
+    columns:
+      - name: drug_reaction_key
+        data_tests:
+          - unique
+          - not_null
+      - name: drug_reaction_reports
+        data_tests:
           - not_null

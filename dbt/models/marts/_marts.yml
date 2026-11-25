@@ -1,0 +1,19 @@
+version: 2
+
+models:
+  - name: mart_safety_signals
+    description: "One row per drug and reaction with disproportionality scores computed from report counts over all of FAERS. prr is the proportional reporting ratio, ror the reporting odds ratio with its 95 percent interval, chi_squared the Pearson statistic. is_signal is true when there are at least 3 reports, prr is at least 2 and chi_squared is at least 4 (the Evans criteria). Administrative and product terms listed in the excluded_reactions seed are left out. A high score means a reaction is reported disproportionately, it does not prove the drug causes it, and reactions that match what the drug is prescribed for score high too."
+    columns:
+      - name: drug_reaction_key
+        data_tests:
+          - unique
+          - not_null
+      - name: drug_name
+        data_tests:
+          - not_null
+      - name: reaction
+        data_tests:
+          - not_null
+      - name: is_signal
+        data_tests:
+          - not_null

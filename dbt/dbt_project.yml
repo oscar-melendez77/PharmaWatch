@@ -14,3 +14,6 @@ models:
     staging:
       +materialized: view
       +schema: pharmawatch_staging
+    marts:
+      +materialized: table
+      +schema: pharmawatch_marts

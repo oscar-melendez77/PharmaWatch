@@ -149,9 +149,11 @@ for item in raw_labels:
     if isinstance(generic_list, list) and len(generic_list) > 0:
         generic_name = generic_list[0]
 
-    # warnings text can be a list or a plain string
+    # warnings text can be a list or a plain string, newer labels call this section warnings_and_cautions
     warnings_text = None
     warnings_value = label.get("warnings")
+    if not warnings_value:
+        warnings_value = label.get("warnings_and_cautions")
     if isinstance(warnings_value, list) and len(warnings_value) > 0:
         warnings_text = warnings_value[0][:TEXT_LIMIT]
     elif isinstance(warnings_value, str):

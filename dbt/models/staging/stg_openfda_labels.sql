@@ -1,4 +1,5 @@
 select
+    concat(drug_id, '|', drug_name) as label_drug_key,
     drug_id as label_id,
     drug_name,
     brand_name,

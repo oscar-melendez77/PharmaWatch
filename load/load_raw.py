@@ -82,6 +82,20 @@ SOURCES = [
             ("ingestion_ts", pa.string()),
         ]),
     },
+    {
+        "name": "faers_counts",
+        "table": "faers_counts",
+        "schema": pa.schema([
+            ("drug_name", pa.string()),
+            ("reaction", pa.string()),
+            ("drug_reaction_reports", pa.int64()),
+            ("drug_reports", pa.int64()),
+            ("reaction_reports", pa.int64()),
+            ("total_reports", pa.int64()),
+            ("reaction_total_approximate", pa.bool_()),
+            ("ingestion_ts", pa.string()),
+        ]),
+    },
 ]
 
 storage_client = storage.Client(project=PROJECT_ID)
@@ -92,7 +106,7 @@ bucket = storage_client.bucket(BUCKET_NAME)
 staged = {}
 for source in SOURCES:
     name = source["name"]
-    latest_file = sorted(RAW_DIR.glob(name + "_*.json"))[-1]
+    latest_file = sorted(RAW_DIR.glob(name + "_20*.json"))[-1]
     ingest_date = latest_file.stem.split("_")[-1]
 
     with open(latest_file, encoding="utf-8") as f:
