@@ -1,0 +1,11 @@
+{
+  "model_auc": 0.7571065709517171,
+  "baseline_auc": 0.6590815317010954,
+  "model_log_loss": 0.5786326610794661,
+  "baseline_log_loss": 0.6487122625673408,
+  "model_brier": 0.1991500195769387,
+  "baseline_brier": 0.22910520130193573,
+  "rows": 12227,
+  "reports": 7812,
+  "share_serious": 0.5270303426842234
+}

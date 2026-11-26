@@ -11,3 +11,4 @@ logs/
 
 mlruns/
 .venv-ml/
+mlflow.db

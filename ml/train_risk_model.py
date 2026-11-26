@@ -177,7 +177,7 @@ with open(ARTIFACT_DIR / "feature_info.json", "w") as f:
 with open(ARTIFACT_DIR / "metrics.json", "w") as f:
     json.dump(metrics, f, indent=2)
 
-mlflow.set_tracking_uri(Path("mlruns").resolve().as_uri())
+mlflow.set_tracking_uri("sqlite:///mlflow.db")
 mlflow.set_experiment("pharmawatch-risk-score")
 with mlflow.start_run(run_name="lightgbm-share-of-serious-reports"):
     mlflow.log_params(final_params)
@@ -186,6 +186,6 @@ with mlflow.start_run(run_name="lightgbm-share-of-serious-reports"):
     mlflow.log_metrics(metrics)
     for file_name in ["risk_model.txt", "feature_info.json", "metrics.json", "shap_importance.png", "calibration.png"]:
         mlflow.log_artifact(str(ARTIFACT_DIR / file_name))
-    mlflow.lightgbm.log_model(final_model.booster_, artifact_path="model")
+    mlflow.lightgbm.log_model(final_model.booster_, name="model")
 
-print("[7/7] saved the model and metrics in", ARTIFACT_DIR, "and logged the run in mlruns")
+print("[7/7] saved the model and metrics in", ARTIFACT_DIR, "and logged the run in mlflow.db")
