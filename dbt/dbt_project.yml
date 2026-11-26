@@ -17,3 +17,7 @@ models:
     marts:
       +materialized: table
       +schema: pharmawatch_marts
+
+vars:
+  strong_signal_min_reports: 10
+  strong_signal_min_prr_lower_95: 2

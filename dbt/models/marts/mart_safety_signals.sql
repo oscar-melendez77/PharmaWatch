@@ -28,6 +28,15 @@ scores as (
             (a + b) * (c + d) * (a + c) * (b + d)
         ) as chi_squared
     from cells
+),
+
+intervals as (
+    select
+        *,
+        exp(safe.ln(prr) - 1.96 * se_ln_prr) as prr_lower_95,
+        exp(safe.ln(ror) - 1.96 * se_ln_ror) as ror_lower_95,
+        exp(safe.ln(ror) + 1.96 * se_ln_ror) as ror_upper_95
+    from scores
 )
 
 select
@@ -39,11 +48,12 @@ select
     reaction_reports,
     total_reports,
     prr,
-    exp(safe.ln(prr) - 1.96 * se_ln_prr) as prr_lower_95,
+    prr_lower_95,
     ror,
-    exp(safe.ln(ror) - 1.96 * se_ln_ror) as ror_lower_95,
-    exp(safe.ln(ror) + 1.96 * se_ln_ror) as ror_upper_95,
+    ror_lower_95,
+    ror_upper_95,
     chi_squared,
     coalesce(a >= 3 and prr >= 2 and chi_squared >= 4, false) as is_signal,
+    coalesce(a >= {{ var('strong_signal_min_reports') }} and prr_lower_95 >= {{ var('strong_signal_min_prr_lower_95') }}, false) as is_strong_signal,
     reaction_total_approximate
-from scores
+from intervals
