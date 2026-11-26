@@ -114,6 +114,19 @@ SOURCES = [
             ("ingestion_ts", pa.string()),
         ]),
     },
+    {
+        "name": "faers_monthly",
+        "table": "faers_monthly",
+        "schema": pa.schema([
+            ("drug_name", pa.string()),
+            ("month", pa.string()),
+            ("reports", pa.int64()),
+            ("serious_reports", pa.int64()),
+            ("hospitalized_reports", pa.int64()),
+            ("death_reports", pa.int64()),
+            ("ingestion_ts", pa.string()),
+        ]),
+    },
 ]
 
 storage_client = storage.Client(project=PROJECT_ID)

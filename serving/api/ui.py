@@ -1,5 +1,6 @@
 import gradio as gr
 import pandas as pd
+import plotly.graph_objects as go
 from fastapi import HTTPException
 from matplotlib.figure import Figure
 
@@ -11,7 +12,7 @@ DRUGS = sorted(main.DRUG_NAMES)
 
 INTRO = """# Drug Safety Intelligence
 What is reported about the most used drugs in the US, built on millions of FDA adverse event reports (FAERS).
-Compare drugs, see what is on the rise, and test a what-if profile.
+Compare drugs, follow them over time, see what is on the rise, and test a what-if profile.
 
 *Educational portfolio project, not medical advice. A report is not proof that a drug caused a reaction.*"""
 
@@ -155,6 +156,50 @@ def overview_view():
     return cards, fig_volume, fig_serious, leaderboard
 
 
+def trend_chart(table, column, title, as_percent):
+    fig = go.Figure()
+    for drug in table["drug_name"].unique():
+        part = table[table["drug_name"] == drug]
+        values = part[column] * 100 if as_percent else part[column]
+        fig.add_trace(go.Scatter(x=part["month"], y=values, mode="lines", name=drug.title()))
+    fig.update_layout(
+        title=title,
+        height=330,
+        margin=dict(l=50, r=15, t=50, b=40),
+        template="plotly_white",
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+        hovermode="x unified",
+        legend=dict(orientation="h", y=-0.2),
+    )
+    if as_percent:
+        fig.update_yaxes(ticksuffix="%")
+    return fig
+
+
+def trends_view(drugs):
+    if drugs is None or len(drugs) == 0:
+        raise gr.Error("Pick at least one drug.")
+    rows = call_api(main.trends, ",".join(drugs))
+    if len(rows) == 0:
+        raise gr.Error("The monthly history is not loaded yet, it arrives with the next daily run.")
+
+    table = pd.DataFrame(rows)
+    table["month"] = pd.to_datetime(table["month"])
+    table["serious_share"] = table["serious_reports"] / table["reports"].where(table["reports"] > 0)
+    table["hospitalized_share"] = table["hospitalized_reports"] / table["reports"].where(table["reports"] > 0)
+    table["death_share"] = table["death_reports"] / table["reports"].where(table["reports"] > 0)
+
+    return (
+        trend_chart(table, "reports", "Reports per month", False),
+        trend_chart(table, "serious_reports", "Serious reports per month", False),
+        trend_chart(table, "serious_share", "Share of reports that were serious", True),
+        trend_chart(table, "hospitalized_reports", "Reports mentioning a hospitalization", False),
+        trend_chart(table, "death_reports", "Reports mentioning a death", False),
+        trend_chart(table, "death_share", "Share of reports mentioning a death", True),
+    )
+
+
 def deep_dive(drug):
     profile = call_api(main.drug_profile, drug)
     top = pd.DataFrame(call_api(main.drug_top_reactions, drug, 10))
@@ -262,6 +307,24 @@ with gr.Blocks(title="Drug Safety Intelligence") as demo:
         dive_outputs = [dive_cards, dive_chart, dive_unusual, dive_rising]
         dive_button.click(deep_dive, inputs=[dive_drug], outputs=dive_outputs)
 
+    with gr.Tab("Trends over time"):
+        gr.Markdown(
+            "Pick one or more drugs, the six charts follow your choice. Click a name in a chart legend to hide or show a line, and hover to read the exact values.  \n"
+            "*The newest months can be incomplete, because openFDA publishes FAERS data every quarter. More reports over time often mean more reporting, not more harm.*"
+        )
+        trend_drugs = gr.Dropdown(choices=DRUGS, value=["amphetamine", "methylphenidate"], multiselect=True, label="Drugs")
+        with gr.Row():
+            trend_reports = gr.Plot()
+            trend_serious = gr.Plot()
+        with gr.Row():
+            trend_serious_share = gr.Plot()
+            trend_hospitalized = gr.Plot()
+        with gr.Row():
+            trend_deaths = gr.Plot()
+            trend_death_share = gr.Plot()
+        trend_outputs = [trend_reports, trend_serious, trend_serious_share, trend_hospitalized, trend_deaths, trend_death_share]
+        trend_drugs.change(trends_view, inputs=[trend_drugs], outputs=trend_outputs)
+
     with gr.Tab("Compare drugs"):
         with gr.Row():
             compare_a = gr.Dropdown(choices=DRUGS, value="amphetamine", label="Drug A")
@@ -291,3 +354,4 @@ with gr.Blocks(title="Drug Safety Intelligence") as demo:
 
     demo.load(overview_view, inputs=None, outputs=[overview_cards, overview_volume, overview_serious, overview_table])
     demo.load(deep_dive, inputs=[dive_drug], outputs=dive_outputs)
+    demo.load(trends_view, inputs=[trend_drugs], outputs=trend_outputs)

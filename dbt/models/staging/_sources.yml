@@ -11,3 +11,4 @@ sources:
       - name: clinicaltrials_studies
       - name: faers_counts
       - name: faers_windows
+      - name: faers_monthly

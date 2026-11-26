@@ -26,6 +26,10 @@ QUERIES = {
         "cast(recent_window_start as string) as recent_window_start, cast(recent_window_end as string) as recent_window_end "
         "from " + MARTS + "mart_emerging_signals`"
     ),
+    "monthly_trends": (
+        "select drug_name, cast(month as string) as month, reports, serious_reports, hospitalized_reports, death_reports "
+        "from " + MARTS + "mart_monthly_trends`"
+    ),
 }
 print("[1/3] config ready, project", PROJECT_ID)
 

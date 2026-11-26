@@ -53,3 +53,14 @@ models:
       - name: is_serious
         data_tests:
           - not_null
+
+  - name: mart_monthly_trends
+    description: "One row per drug and month with report counts and the share of reports that were serious, mentioned a hospitalization or mentioned a death. It feeds the trend charts. The newest months can be incomplete, and a rising count can come from more reporting and not from more harm."
+    columns:
+      - name: drug_month_key
+        data_tests:
+          - unique
+          - not_null
+      - name: reports
+        data_tests:
+          - not_null

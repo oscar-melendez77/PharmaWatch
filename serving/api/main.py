@@ -15,6 +15,13 @@ profile = pd.read_parquet(DATA_DIR / "drug_profile.parquet")
 signals = pd.read_parquet(DATA_DIR / "safety_signals.parquet")
 emerging = pd.read_parquet(DATA_DIR / "emerging_signals.parquet")
 booster = lgb.Booster(model_file=str(ARTIFACT_DIR / "risk_model.txt"))
+
+# the monthly history is new, an older snapshot may not have it yet, then the trends view says so
+MONTHLY_COLUMNS = ["drug_name", "month", "reports", "serious_reports", "hospitalized_reports", "death_reports"]
+if (DATA_DIR / "monthly_trends.parquet").exists():
+    monthly = pd.read_parquet(DATA_DIR / "monthly_trends.parquet")
+else:
+    monthly = pd.DataFrame(columns=MONTHLY_COLUMNS)
 with open(ARTIFACT_DIR / "feature_info.json") as f:
     feature_info = json.load(f)
 
@@ -66,6 +73,18 @@ def overview():
         "reports_last_12_months": int(profile["recent_drug_reports"].sum()),
         "drugs_table": json.loads(table.to_json(orient="records")),
     }
+
+
+@app.get("/trends")
+def trends(drugs: str):
+    """Reports per month for one or more drugs, given as names separated by commas."""
+    names = [name.strip() for name in drugs.split(",") if name.strip() != ""]
+    for name in names:
+        if name not in DRUG_NAMES:
+            raise HTTPException(status_code=404, detail="Unknown drug: " + name)
+
+    rows = monthly[monthly["drug_name"].isin(names)].sort_values(["drug_name", "month"])
+    return json.loads(rows[MONTHLY_COLUMNS].to_json(orient="records"))
 
 
 @app.get("/drugs")

@@ -95,3 +95,14 @@ models:
       - name: recent_reports
         data_tests:
           - not_null
+
+  - name: stg_faers_monthly
+    description: "One row per drug and calendar month with the number of FAERS reports received that month, and how many of them were marked serious, mention a hospitalization or mention a death. Counts come from the openFDA count endpoint over all of FAERS, grouped by the day the FDA received the report. Months before 2018 are not loaded, and the newest months can be incomplete because openFDA publishes FAERS quarterly."
+    columns:
+      - name: drug_month_key
+        data_tests:
+          - unique
+          - not_null
+      - name: reports
+        data_tests:
+          - not_null
