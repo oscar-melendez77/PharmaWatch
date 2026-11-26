@@ -34,6 +34,24 @@ resource "google_project_service" "iam" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "run" {
+  project            = var.gcp_project_id
+  service            = "run.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "cloudbuild" {
+  project            = var.gcp_project_id
+  service            = "cloudbuild.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "artifactregistry" {
+  project            = var.gcp_project_id
+  service            = "artifactregistry.googleapis.com"
+  disable_on_destroy = false
+}
+
 # 2. the data lake bucket, raw files from the extract scripts land here
 
 resource "google_storage_bucket" "raw" {

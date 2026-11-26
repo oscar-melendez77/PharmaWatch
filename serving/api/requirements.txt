@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+gradio
+matplotlib
+pandas
+numpy
+pyarrow==26.0.1
+lightgbm==4.7.0

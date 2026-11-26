@@ -12,3 +12,6 @@ logs/
 mlruns/
 .venv-ml/
 mlflow.db
+
+serving/api/data/
+serving/api/artifacts/

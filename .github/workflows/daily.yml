@@ -1,0 +1,121 @@
+name: daily-pipeline
+
+on:
+  schedule:
+    - cron: "17 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: pharmawatch-daily
+  cancel-in-progress: false
+
+env:
+  GCP_PROJECT_ID: pharmawatch-515719
+  GCS_BUCKET: pharmawatch-515719-pharmawatch-raw
+  BQ_DATASET_RAW: pharmawatch_raw
+  BQ_LOCATION: us-central1
+  WORKLOAD_IDENTITY_PROVIDER: projects/595795276542/locations/global/workloadIdentityPools/github-actions/providers/github
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Sign in to Google Cloud as the pipeline account
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: pharmawatch-pipeline@pharmawatch-515719.iam.gserviceaccount.com
+
+      - name: Install packages
+        run: |
+          pip install -r extract/requirements.txt -r load/requirements.txt pandas db-dtypes
+          python -m venv .venv-dbt
+          .venv-dbt/bin/pip install -r dbt/requirements.txt
+
+      - name: Extract
+        env:
+          OPENFDA_API_KEY: ${{ secrets.OPENFDA_API_KEY }}
+        run: |
+          python extract/faers.py
+          python extract/openfda.py
+          python extract/pubmed.py
+          python extract/clinicaltrials.py
+          python extract/faers_counts.py
+          python extract/faers_windows.py
+
+      - name: Load into BigQuery
+        run: python load/load_raw.py
+
+      - name: Build and test the models with dbt
+        working-directory: dbt
+        run: ../.venv-dbt/bin/dbt build
+
+      - name: Export the snapshot for the dashboard
+        run: python serving/export_snapshots.py
+
+      - name: Keep the snapshot for the deploy job
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-snapshot
+          path: |
+            serving/api/data
+            serving/api/artifacts
+          retention-days: 1
+          if-no-files-found: error
+
+  deploy:
+    needs: pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      IMAGE: us-central1-docker.pkg.dev/pharmawatch-515719/pharmawatch/pharmawatch-api:${{ github.sha }}
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Get the snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: dashboard-snapshot
+          path: serving/api
+
+      - name: Sign in to Google Cloud as the deployer account
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: pharmawatch-deployer@pharmawatch-515719.iam.gserviceaccount.com
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push the image
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+          docker build -t "$IMAGE" serving/api
+          docker push "$IMAGE"
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy pharmawatch-api \
+            --image "$IMAGE" \
+            --region us-central1 \
+            --max-instances 1 \
+            --memory 2Gi
+
+      - name: Check the service answers
+        run: |
+          URL=$(gcloud run services describe pharmawatch-api --region us-central1 --format="value(status.url)")
+          curl --fail --silent --show-error --retry 6 --retry-delay 10 --retry-all-errors "$URL/health"

@@ -27,3 +27,18 @@ output "pipeline_service_account" {
   description = "Email of the service account the pipeline runs as"
   value       = google_service_account.pipeline.email
 }
+
+output "github_workload_identity_provider" {
+  description = "Provider name the GitHub workflow uses to sign in"
+  value       = google_iam_workload_identity_pool_provider.github.name
+}
+
+output "deployer_service_account" {
+  description = "Email of the service account that deploys the dashboard"
+  value       = google_service_account.deployer.email
+}
+
+output "image_repository" {
+  description = "Address of the Artifact Registry repository for dashboard images"
+  value       = "${var.gcp_region}-docker.pkg.dev/${var.gcp_project_id}/${google_artifact_registry_repository.images.repository_id}"
+}
