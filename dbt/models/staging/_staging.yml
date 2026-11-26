@@ -84,3 +84,14 @@ models:
       - name: drug_reaction_reports
         data_tests:
           - not_null
+
+  - name: stg_faers_windows
+    description: "One row per drug and reaction seen at least 5 times in the last year, with report counts for that recent window and for all the years before it, and the total reports of the drug in each window. history_is_upper_bound is true when the reaction was missing from openFDA's top 1000 list for the history window, so history_reports is the most it could have been."
+    columns:
+      - name: drug_reaction_key
+        data_tests:
+          - unique
+          - not_null
+      - name: recent_reports
+        data_tests:
+          - not_null

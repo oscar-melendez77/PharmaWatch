@@ -7,6 +7,11 @@ select
     cast(severity as int64) = 1 as is_serious,
     age_years as patient_age_years,
     weight as patient_weight_kg,
+    case patient_sex
+        when '1' then 'male'
+        when '2' then 'female'
+    end as patient_sex,
+    n_drugs,
     hospitalization = 1 as was_hospitalized,
     death = 1 as resulted_in_death,
     disability = 1 as resulted_in_disability,

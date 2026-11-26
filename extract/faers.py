@@ -137,6 +137,13 @@ for item in raw_reports:
     if len(drugs_on_report) > 0:
         reported_drug = drugs_on_report[0].get("medicinalproduct")
 
+    # sex code (1 male, 2 female, 0 unknown) and how many drugs the report lists in total
+    sex_value = patient.get("patientsex")
+    patient_sex = None
+    if sex_value is not None:
+        patient_sex = str(sex_value)
+    n_drugs = len(drugs_on_report)
+
     # every distinct reaction on the report, a report with none still keeps one row
     reaction_terms = []
     for reaction_item in reactions:
@@ -200,6 +207,8 @@ for item in raw_reports:
             "age_years": age_years,
             "age_unit": age_unit,
             "weight": weight,
+            "patient_sex": patient_sex,
+            "n_drugs": n_drugs,
             "report_date": report.get("receivedate"),
             "hospitalization": flags["seriousnesshospitalization"],
             "death": flags["seriousnessdeath"],

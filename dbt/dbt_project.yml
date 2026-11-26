@@ -20,4 +20,6 @@ models:
 
 vars:
   strong_signal_min_reports: 10
-  strong_signal_min_prr_lower_95: 2
+  strong_signal_min_prr_lower_95: 5
+  emerging_min_recent_reports: 10
+  emerging_min_rate_ratio_lower_95: 2

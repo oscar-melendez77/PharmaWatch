@@ -10,3 +10,4 @@ sources:
       - name: pubmed_articles
       - name: clinicaltrials_studies
       - name: faers_counts
+      - name: faers_windows

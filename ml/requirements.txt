@@ -1,0 +1,10 @@
+lightgbm
+scikit-learn
+pandas
+numpy
+matplotlib
+mlflow
+google-cloud-bigquery
+db-dtypes
+pyarrow
+python-dotenv

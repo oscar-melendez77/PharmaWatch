@@ -31,3 +31,25 @@ models:
       - name: drug_reports
         data_tests:
           - not_null
+
+  - name: mart_emerging_signals
+    description: "One row per drug and reaction comparing the share of the drug's reports that mention the reaction in the last year with the share in the years before. rate_ratio is recent rate over history rate (with 0.5 added to every count so a reaction never seen before still gets a finite value), rate_ratio_lower_95 its 95 percent lower bound. is_emerging is true when there are enough recent reports and the lower bound is high enough (see emerging_ settings in dbt_project.yml). When history_is_upper_bound is true the history count is the most it could have been, so the ratio can only be too low. A rising share can also come from news, lawsuits or changes in who reports, it does not show a new safety problem by itself."
+    columns:
+      - name: drug_reaction_key
+        data_tests:
+          - unique
+          - not_null
+      - name: is_emerging
+        data_tests:
+          - not_null
+
+  - name: mart_risk_features
+    description: "One row per FAERS report and drug, the training table for the risk model. is_serious is the FAERS seriousness flag of the report. Age, weight and sex are empty when the report does not give them, n_drugs is how many drugs the report lists. Several rows can share a report_id because one report can mention several of the 50 drugs, so models must split by report_id."
+    columns:
+      - name: report_drug_key
+        data_tests:
+          - unique
+          - not_null
+      - name: is_serious
+        data_tests:
+          - not_null

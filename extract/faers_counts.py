@@ -136,6 +136,9 @@ for phase in (1, 2):
 
                 if response is not None and response.status_code in (200, 404):
                     break
+                if response is not None and response.status_code == 403:
+                    print("STOPPED: openFDA answered 403, the API key is missing or not valid, check OPENFDA_API_KEY in this window")
+                    raise SystemExit(1)
                 if response is not None and response.status_code == 400:
                     print("   ", key, "-> status 400, the search text is not accepted, not retrying")
                     break
